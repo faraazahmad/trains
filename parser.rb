@@ -14,6 +14,7 @@ class MigrationParser < Parser::AST::Processor
     @is_class = false
     @is_migration = false
     @class_name = nil
+    @model_name = nil
 
     @scope = {
       class: nil, 
@@ -38,7 +39,16 @@ class MigrationParser < Parser::AST::Processor
     unless %w(change up down).include? node.method_name
       @is_migration = false
     end
-    puts @scope
+    # puts @scope
+    parse_migration_method node
+  end
+
+  def parse_migration_method(node)
+    orm_method_call = node.body.send_node
+    # p orm_method_call
+    return unless orm_method_call.method_name == 'create_table'
+    @model_name = orm_method_call.first_argument.value
+    # pp node.body
   end
 
   def on_send(node)
