@@ -1,24 +1,25 @@
 require "rubocop-ast"
 require "parser"
 require "yaml"
+require_relative "model"
 
 class MigrationParser < Parser::AST::Processor
   include RuboCop::AST::Traversal
 
-  attr_reader :is_migration, :model_name, :model_fields
+  attr_reader :is_migration, :model
   
   def initialize
+    @model = Model.new
     @is_class = false
     @is_migration = false
     @class_name = nil
-    @model_name = nil
-    @model_fields = []
+    # @model_name = nil
+    # @model_fields = []
 
     @scope = {
       class: nil, 
       method: nil,
       send: nil,
-      fields: []
     }
   end
 
@@ -45,7 +46,7 @@ class MigrationParser < Parser::AST::Processor
   def parse_migration_method(node)
     orm_method_call = node.body.send_node
     return unless orm_method_call.method_name == :create_table
-    @model_name = orm_method_call.first_argument.value
+    @model.name = orm_method_call.first_argument.value
     body = nil
     field = nil
     body = node.body.body if node.body.block_type?
@@ -65,9 +66,9 @@ class MigrationParser < Parser::AST::Processor
       end
 
       if field.is_a? Array
-          field.each { |f| @model_fields.append f }
+        field.each { |f| @model.fields.append f }
       elsif field.is_a? Hash
-          @model_fields.append field
+        @model.fields.append field
       else
           raise "unknown field type: #{field}"
       end
@@ -111,4 +112,4 @@ source.ast.each_node { |node| migration_parser.process node }
 #puts migration_parser.model_name
 #puts migration_parser.scope
 
-puts migration_parser.to_yaml
+puts migration_parser.model.to_yaml
