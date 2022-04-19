@@ -8,6 +8,7 @@ GEM
       tzinfo (~> 2.0)
     ast (2.4.2)
     concurrent-ruby (1.1.10)
+    fast_ignore (0.17.2)
     i18n (1.10.0)
       concurrent-ruby (~> 1.0)
     minitest (5.15.0)
@@ -23,6 +24,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (~> 7.0, >= 7.0.2.3)
+  fast_ignore
   rubocop-ast
 
 BUNDLED WITH

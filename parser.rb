@@ -13,8 +13,6 @@ class MigrationParser < Parser::AST::Processor
     @is_class = false
     @is_migration = false
     @class_name = nil
-    # @model_name = nil
-    # @model_fields = []
 
     @scope = {
       class: nil, 
@@ -39,7 +37,6 @@ class MigrationParser < Parser::AST::Processor
     unless %w(change up down).include? node.method_name
       @is_migration = false
     end
-    # puts @scope
     parse_migration_method node
   end
 
@@ -55,6 +52,9 @@ class MigrationParser < Parser::AST::Processor
       field = case node.method_name
       when :column
         { column: node.arguments[0].value, type: node.arguments[-1].value }
+      when :references
+        # puts "DEBUG: #{node.arguments[0].value}"
+        { column: node.arguments[0].value, type: :reference}
       when :integer
         { column: node.arguments[0].value, type: :integer }
       when :timestamps
@@ -73,36 +73,16 @@ class MigrationParser < Parser::AST::Processor
           raise "unknown field type: #{field}"
       end
 
-      # @model_fields.append field unless field.nil?
     end
 
-    # pp @model_fields
    end
-=begin
-  def on_send(node)
-    if @scope[:method] == :change
-      p node.block_node if node.block_node
-    end
-    # puts "at send node. scope = #{@scope}"
-  end
-=end
-end
-
-class MyParser
-  def initialize(ast)
-    @ast = ast
-  end
-
-  def analyse
-    @ast.child_nodes[0].class_type?
-  end
 end
 
 file_path = ARGV[0]
 file = File.open(File.expand_path(file_path))
 code = file.read
 file.close
-
+ 
 source = RuboCop::AST::ProcessedSource.new(code, 3.0)
 migration_parser = MigrationParser.new
 # ast = source.ast
