@@ -2,8 +2,9 @@ require 'yaml'
 require 'rubocop-ast'
 require_relative 'parser'
 require 'fast_ignore'
-
+require_relative 'logger'
 class Train
+  include Logger
   attr_reader :nodes, :gitignore, :models
 
   def initialize(folder)
