@@ -1,18 +1,18 @@
 require 'yaml'
+require 'rubocop-ast'
+require_relative 'parser'
 require 'fast_ignore'
 
 class Train
-  attr_reader :nodes, :gitignore
+  attr_reader :nodes, :gitignore, :models
 
   def initialize(folder)
     @nodes = []
-    @gitignore = []
+    @models = []
     @dir = Dir.new(File.expand_path(folder))
     Dir.chdir @dir
     @folder = @dir
 
-    build_gitignore
-    # puts @gitignore
     analyse
   end
 
@@ -22,11 +22,25 @@ class Train
 
   def get_controllers; end
 
-  def build_gitignore
-    return unless @folder.children.include? '.gitignore'
+  def get_migrations
+    db_folder = @nodes[:children].find { |node| node[:path].include? 'db' }
+    migrations =
+      db_folder[:children].find { |node| node[:path].include? 'db/migrate' }
+    migration_files = migrations[:children]
 
-    absolute_path = File.join(@folder, '.gitignore')
-    @gitignore = File.readlines(absolute_path).map(&:chomp).filter { |line| line != '' && line[0] != '#' }
+    migration_files.each do |node|
+      file = File.open(node[:path])
+      code = file.read
+      file.close
+
+      source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
+      migration_parser = MigrationParser.new
+
+      # ast = source.ast
+      source.ast.each_node { |node| migration_parser.process node }
+
+      @models << migration_parser.model
+    end
   end
 
   def analyse
@@ -40,7 +54,8 @@ class Train
     obj = {}
 
     # puts "DEBUG: #{path} #{ FastIgnore.new.allowed? path }"
-    if path != @dir.to_path and FastIgnore.new.allowed?(path, directory: false) == false
+    if path != @dir.to_path and
+         FastIgnore.new.allowed?(path, directory: false) == false
       return nil
     end
 
@@ -63,4 +78,6 @@ end
 trains = Train.new(ARGV[0])
 # trains.analyse
 # puts trains.gitignore
-pp trains.nodes
+# pp trains.nodes
+trains.get_migrations
+puts trains.models.to_yaml
