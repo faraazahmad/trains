@@ -19,6 +19,8 @@ class Train
 
   def get_models; end
 
+  def get_helpers; end
+
   def get_gemfile; end
 
   def get_controllers; end

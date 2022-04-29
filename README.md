@@ -29,4 +29,4 @@ Intelligent autocomplete about your rails app that is context aware. Built using
     :type: :datetime
 ```
 
-Shows the models and their fields by parsing the db migrations
+Shows the models (in YAML format) and their fields by parsing the db migrations
