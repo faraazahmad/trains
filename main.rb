@@ -1,15 +1,17 @@
 require 'yaml'
 require 'rubocop-ast'
-require_relative 'parser'
+require_relative 'parsers/migration'
+require_relative 'parsers/controller'
 require 'fast_ignore'
 require_relative 'logger'
 class Train
   include Logger
-  attr_reader :nodes, :gitignore, :models
+  attr_reader :nodes, :gitignore, :models, :controllers
 
   def initialize(folder)
     @nodes = []
     @models = []
+    @controllers = []
     @dir = Dir.new(File.expand_path(folder))
     Dir.chdir @dir
     @folder = @dir
@@ -23,7 +25,34 @@ class Train
 
   def get_gemfile; end
 
-  def get_controllers; end
+  def get_controllers
+    # debug nodes[:children]
+    app_folder = @nodes[:children].find { |node| node[:path].include? 'app' }
+    controllers_folder =
+      app_folder[:children].find do |node|
+        node[:path].include? 'app/controllers'
+      end
+    controllers =
+      controllers_folder[:children].filter do |node|
+        node[:path].end_with? '_controller.rb'
+      end
+
+    controllers.each do |node|
+      file = File.open(node[:path])
+      code = file.read
+      file.close
+
+      source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
+      parser = ControllerParser.new
+
+      # ast = source.ast
+      source.ast.each_node { |node| parser.process node }
+
+      unless parser.controller.eql? Controller.new
+        @controllers << parser.controller
+      end
+    end
+  end
 
   def get_migrations
     db_folder = @nodes[:children].find { |node| node[:path].include? 'db' }
@@ -37,12 +66,12 @@ class Train
       file.close
 
       source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-      migration_parser = MigrationParser.new
+      parser = MigrationParser.new
 
       # ast = source.ast
-      source.ast.each_node { |node| migration_parser.process node }
+      source.ast.each_node { |node| parser.process node }
 
-      @models << migration_parser.model
+      @models << parser.model
     end
   end
 
@@ -50,6 +79,8 @@ class Train
     raise "No such file or directory #{@folder}" unless Dir.exist? @folder
 
     @nodes = get_node('', @folder)
+    get_migrations
+    get_controllers
   end
 
   def get_node(prefix, node)
@@ -82,5 +113,5 @@ trains = Train.new(ARGV[0])
 # trains.analyse
 # puts trains.gitignore
 # pp trains.nodes
-trains.get_migrations
 puts trains.models.to_yaml
+puts trains.controllers.to_yaml

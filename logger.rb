@@ -1,5 +1,6 @@
 module Logger
   def debug(log)
-    puts "[DEBUG]: #{log}"
+    puts '[DEBUG]'
+    pp log
   end
 end

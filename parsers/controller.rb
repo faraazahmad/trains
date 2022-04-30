@@ -31,13 +31,13 @@ class ControllerParser < BaseParser
   end
 end
 
-file_path = ARGV[0]
-file = File.open(File.expand_path(file_path))
-code = file.read
-file.close
+# file_path = ARGV[0]
+# file = File.open(File.expand_path(file_path))
+# code = file.read
+# file.close
 
-source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-parser = ControllerParser.new
-# ast = source.ast
-source.ast.each_node { |node| parser.process node }
-puts parser.controller.to_yaml
+# source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
+# parser = ControllerParser.new
+# # ast = source.ast
+# source.ast.each_node { |node| parser.process node }
+# puts parser.controller.to_yaml
