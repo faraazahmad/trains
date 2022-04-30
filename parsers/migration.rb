@@ -1,13 +1,8 @@
-require 'rubocop-ast'
-require 'parser'
+require_relative 'base_parser'
+require_relative '../utils/model'
 require 'yaml'
-require_relative 'model'
-require_relative 'logger'
 
-class MigrationParser < Parser::AST::Processor
-  include RuboCop::AST::Traversal
-  include Logger
-
+class MigrationParser < BaseParser
   attr_reader :is_migration, :model
 
   def initialize
