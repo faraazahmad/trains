@@ -1,6 +1,6 @@
 # Trains
 
-Intelligent autocomplete about your rails app that is context aware. Built using static analysis.
+Extract information about your Rails app using static analysis.
 
 (WIP)
 
