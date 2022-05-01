@@ -25,6 +25,29 @@ class Train
 
   def get_gemfile; end
 
+  def parse_util(obj, klass)
+    unless obj.class.include? Enumerable
+      raise TypeError("Object of type #{type.class} is not iterable")
+    end
+
+    results = []
+    parser = klass.new
+
+    obj.each do |node|
+      file = File.open(node[:path])
+      code = file.read
+      file.close
+
+      source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
+      parser = klass.new
+
+      source.ast.each_node { |ast_node| parser.process ast_node }
+      results << parser.result
+    end
+
+    results
+  end
+
   def get_controllers
     # debug nodes[:children]
     app_folder = @nodes[:children].find { |node| node[:path].include? 'app' }
@@ -37,47 +60,19 @@ class Train
         node[:path].end_with? '_controller.rb'
       end
 
-    controllers.each do |node|
-      file = File.open(node[:path])
-      code = file.read
-      file.close
-
-      source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-      parser = ControllerParser.new
-
-      # ast = source.ast
-      source.ast.each_node { |node| parser.process node }
-
-      unless parser.controller.eql? Controller.new
-        @controllers << parser.controller
-      end
-    end
+    @controllers = parse_util(controllers, ControllerParser)
   end
 
   def get_migrations
     db_folder = @nodes[:children].find { |node| node[:path].include? 'db' }
-    migrations =
+    migrations_folder =
       db_folder[:children].find { |node| node[:path].include? 'db/migrate' }
-    migration_files = migrations[:children]
+    migrations = migrations_folder[:children]
 
-    migration_files.each do |node|
-      file = File.open(node[:path])
-      code = file.read
-      file.close
-
-      source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-      parser = MigrationParser.new
-
-      # ast = source.ast
-      source.ast.each_node { |node| parser.process node }
-
-      @models << parser.model
-    end
+    @models = parse_util(migrations, MigrationParser)
   end
 
   def analyse
-    raise "No such file or directory #{@folder}" unless Dir.exist? @folder
-
     @nodes = get_node('', @folder)
     get_migrations
     get_controllers

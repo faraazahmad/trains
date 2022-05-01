@@ -82,6 +82,10 @@ class MigrationParser < BaseParser
       nil
     end
   end
+
+  def result
+    @model
+  end
 end
 
 # file_path = ARGV[0]

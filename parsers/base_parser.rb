@@ -5,4 +5,8 @@ require_relative '../logger'
 class BaseParser < Parser::AST::Processor
   include RuboCop::AST::Traversal
   include Logger
+
+  def result
+    raise NotImplementedError
+  end
 end

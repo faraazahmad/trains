@@ -29,6 +29,10 @@ class ControllerParser < BaseParser
     method_name = node.method_name
     @controller.controller_methods.add method_name
   end
+
+  def result
+    @controller
+  end
 end
 
 # file_path = ARGV[0]
