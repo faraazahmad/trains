@@ -17,11 +17,15 @@ class ControllerParser < BaseParser
   def on_class(node)
     @is_class = true
 
-    parent_class = node.parent_class.const_name
-    @is_controller = true if parent_class.to_sym == :ApplicationController
-    return unless @is_controller
+    parent_class = node.parent_class.const_name.to_sym
+    @controller.name = node.identifier.const_name.to_sym
+    if parent_class.nil?
+      @is_controller = true if @controller.name == :ApplicationController
+    else
+      @is_controller = true if parent_class == :ApplicationController
+    end
 
-    @controller.name = node.identifier.const_name
+    return unless @is_controller
   end
 
   # List out all controller methods
@@ -34,14 +38,3 @@ class ControllerParser < BaseParser
     @controller
   end
 end
-
-# file_path = ARGV[0]
-# file = File.open(File.expand_path(file_path))
-# code = file.read
-# file.close
-
-# source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-# parser = ControllerParser.new
-# # ast = source.ast
-# source.ast.each_node { |node| parser.process node }
-# puts parser.controller.to_yaml

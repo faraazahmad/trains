@@ -33,7 +33,6 @@ class MigrationParser < BaseParser
   def parse_migration_method(node)
     orm_method_call = node.body.send_node
 
-    # pp node.body.send_node.method_name
     return unless orm_method_call.method_name == :create_table
     @model.name = orm_method_call.first_argument.value
     method_body = node.body.body
@@ -66,7 +65,6 @@ class MigrationParser < BaseParser
         type: child_node.arguments[-1].value,
       }
     when :references
-      # puts "DEBUG: #{node.arguments[0].value}"
       { column: child_node.arguments[0].value, type: :reference }
     when :integer
       { column: child_node.arguments[0].value, type: :integer }
@@ -87,19 +85,3 @@ class MigrationParser < BaseParser
     @model
   end
 end
-
-# file_path = ARGV[0]
-# file = File.open(File.expand_path(file_path))
-# code = file.read
-# file.close
-
-# source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-# migration_parser = MigrationParser.new
-# # ast = source.ast
-# source.ast.each_node { |node| migration_parser.process node }
-# #parser = MyParser.new(ast)
-# #p parser.analyse
-# #puts migration_parser.model_name
-# #puts migration_parser.scope
-
-# puts migration_parser.model.to_yaml
