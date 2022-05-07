@@ -21,6 +21,7 @@ GEM
       tzinfo (~> 2.0)
     ast (2.4.2)
     builder (3.2.4)
+    colored (1.2)
     concurrent-ruby (1.1.10)
     crass (1.0.6)
     erubi (1.10.0)
@@ -70,6 +71,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (~> 7.0, >= 7.0.2.3)
+  colored
   fast_ignore
   irb
   railties

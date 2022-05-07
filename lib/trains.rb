@@ -1,18 +1,22 @@
 require 'yaml'
 require 'rubocop-ast'
 require_relative 'parsers/migration'
+require_relative 'parsers/helper'
 require_relative 'parsers/controller'
 require 'fast_ignore'
 require_relative 'utils/logger'
+require_relative 'utils/rails_dir'
 
 class Trains
   include Logger
-  attr_reader :nodes, :gitignore, :models, :controllers
+  include RailsDir
+  attr_reader :models, :controllers
 
   def initialize(folder)
     @nodes = []
     @models = []
     @controllers = []
+    @helpers = []
     @dir = Dir.new(File.expand_path(folder))
     Dir.chdir @dir
     @folder = @dir
@@ -22,7 +26,17 @@ class Trains
 
   def get_models; end
 
-  def get_helpers; end
+  def get_helpers
+    app_folder = @nodes[:children].find { |node| node[:path].include? 'app' }
+    helpers_folder =
+      app_folder[:children].find { |node| node[:path].include? 'app/helpers' }
+    helpers =
+      helpers_folder[:children].filter do |node|
+        node[:path].end_with? '_helper.rb'
+      end
+
+    @helpers = parse_util(helpers, HelperParser)
+  end
 
   def get_gemfile; end
 
@@ -75,6 +89,9 @@ class Trains
 
   def analyse
     @nodes = get_node('', @folder)
+
+    # Check if @folder is a Rails directory before beginning analysis
+    check @nodes
     get_migrations
     get_controllers
   end
