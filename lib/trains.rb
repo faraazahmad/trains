@@ -46,19 +46,26 @@ class Trains
     end
 
     results = []
+    threads = []
     parser = klass.new
 
     obj.each do |node|
-      file = File.open(node[:path])
-      code = file.read
-      file.close
+      threads <<
+        Thread.new do
+          file = File.open(node[:path])
+          code = file.read
+          file.close
 
-      source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
-      parser = klass.new
+          source = RuboCop::AST::ProcessedSource.new(code, RUBY_VERSION.to_f)
+          parser = klass.new
 
-      source.ast.each_node { |ast_node| parser.process ast_node }
-      results << parser.result
+          source.ast.each_node { |ast_node| parser.process ast_node }
+          Thread.current[:output] = parser.result
+        end
     end
+
+    threads.each { |thr| thr.join }
+    results = threads.map { |t| t[:output] }
 
     results
   end
