@@ -4,6 +4,18 @@ Extract information about your Rails app using static analysis.
 
 (WIP)
 
+## Features
+
+Trains can currently achieve the following:
+
+- [x] Generate model definitions from your DB migrations
+- [x] Generate controllers definitions and list their methods
+- [ ] Generate a list of all helpers created
+- [ ] List out all the included helpers with a controller's view
+- [ ] Merge multiple DB migrations to create a single Model definition
+- [ ] Merge Rails::Model definition with a Trains Model definition
+- [ ] Be more robust in handling different types and syntax of Migrations, models, controllers etc.
+
 ## Example
 
 You can run the CLI by executing main.rb and providing a path to a Rails app directory:
