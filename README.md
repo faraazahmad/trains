@@ -27,22 +27,32 @@ $ ruby main.rb ~/oss/sample-proj/
 It will give you a result with all the models and controllers in your app:
 
 ```ruby
-[#<Model:0x000055dc0fdd60f8
-  @fields=
-   [{:column=>:created_at, :type=>:datetime},
-    {:column=>:updated_at, :type=>:datetime}],
-  @name=:boxes>,
- #<Model:0x000055dc10129250
-  @fields=
-   [{:column=>:flavor, :type=>:string},
-    {:column=>:box, :type=>:reference},
-    {:column=>:created_at, :type=>:datetime},
-    {:column=>:updated_at, :type=>:datetime}],
-  @name=:chocolates>]
-[#<Controller:0x000055dc0fe4cdc0
-  @controller_methods=#<Set: {}>,
-  @name=:ApplicationController>,
- #<Controller:0x000055dc0fe3fbc0
-  @controller_methods=#<Set: {:new, :create, :edit, :delete}>,
-  @name=:BoxController>]
+#<Trains:0x0000556a1f009a40
+ @controllers=
+  [#<Controller:0x0000556a1f0cb668
+    @controller_methods=#<Set: {}>,
+    @name=:ApplicationController>,
+   #<Controller:0x0000556a1f0c2518
+    @controller_methods=#<Set: {:new, :create, :edit, :delete}>,
+    @name=:BoxController>],
+ @dir=#<Dir:/home/faraaz/oss/sample-proj>,
+ @folder=#<Dir:/home/faraaz/oss/sample-proj>,
+ @helpers=[],
+ @models=
+  [#<Model:0x0000556a1ee4b898
+    @fields=
+     [{:column=>:created_at, :type=>:datetime},
+      {:column=>:updated_at, :type=>:datetime}],
+    @name=:boxes>,
+   #<Model:0x0000556a1f2bbdb0
+    @fields=
+     [{:column=>:flavor, :type=>:string},
+      {:column=>:box, :type=>:reference},
+      {:column=>:created_at, :type=>:datetime},
+      {:column=>:updated_at, :type=>:datetime}],
+    @name=:chocolates>],
+ @nodes=
+  {:path=>"/home/faraaz/oss/sample-proj",
+   :children=>[...]
+   }>
 ```
