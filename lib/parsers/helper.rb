@@ -1,2 +1,0 @@
-class HelperParser < BaseParser
-end
