@@ -4,12 +4,9 @@ gem 'rubocop-ast'
 gem 'fast_ignore'
 gem 'activesupport', '~> 7.0', '>= 7.0.2.3'
 gem 'railties'
-gem 'irb'
-gem 'colored'
 gem "zeitwerk", "~> 2.5"
 
-gem "ruby-lsp", "~> 0.3.7", :group => :development
-
-gem "rspec", "~> 3.12"
-
-gem "syntax_tree", "~> 4.3"
+group :test, :development do
+    gem "ruby-lsp", "~> 0.3.7"
+    gem "rspec", "~> 3.12"
+end
