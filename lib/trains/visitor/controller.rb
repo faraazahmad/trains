@@ -1,5 +1,3 @@
-require "yaml"
-
 module Trains
   module Visitor
     class Controller < Base
@@ -31,7 +29,7 @@ module Trains
       # List out all controller methods
       def on_def(node)
         method_name = node.method_name
-        @controller.controller_methods.add method_name
+        @controller.methods.add method_name
       end
 
       def result

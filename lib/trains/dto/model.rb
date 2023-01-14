@@ -1,11 +1,12 @@
 module Trains
   module DTO
     class Model
-      attr_accessor :name, :fields
+      attr_reader :name, :fields, :version
 
-      def initialize(name = nil, fields = [])
+      def initialize(name = nil, fields = [], version)
         @name = name
         @fields = fields
+        @version = version
       end
     end
   end

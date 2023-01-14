@@ -101,6 +101,7 @@ DEPENDENCIES
   rspec (~> 3.12)
   rubocop-ast
   ruby-lsp (~> 0.3.7)
+  syntax_tree (~> 4.3)
   zeitwerk (~> 2.5)
 
 BUNDLED WITH

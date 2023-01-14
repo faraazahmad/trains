@@ -9,10 +9,13 @@ describe Trains::Visitor::Controller do
           valid_controller,
           RUBY_VERSION.to_f
         ).ast
-      parser.process(file_ast)
+      file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to eq(
-        Trains::DTO::Controller.new(name: :BoxController, methods: Set.new)
+        Trains::DTO::Controller.new(
+          name: :BoxController,
+          methods: Set[:create, :edit, :update, :destroy]
+        )
       )
     end
   end
