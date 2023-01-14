@@ -13,7 +13,12 @@ describe Trains::Visitor::Migration do
 
       expect(parser.result).to have_attributes(
         name: "CreateGroups",
-        fields: Set.new,
+        fields:
+          Set[
+            Trains::DTO::Field.new(:datetime, :created_at),
+            Trains::DTO::Field.new(:datetime, :updated_at),
+            Trains::DTO::Field.new(:string, :title)
+          ],
         version: 7.0
       )
       # expect(parser.result).to eq(
