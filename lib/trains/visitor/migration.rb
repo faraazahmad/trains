@@ -1,9 +1,9 @@
-require "yaml"
+require 'yaml'
 
 module Trains
   module Visitor
     class Migration < Base
-      def_node_matcher :send_node?, "(send nil? ...)"
+      def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model
 
       def initialize
@@ -17,12 +17,12 @@ module Trains
       end
 
       def on_class(node)
-        if node.parent_class.source.include? "ActiveRecord::Migration"
-          @migration_class = node.children.first.source
-          @migration_version = extract_version(node.parent_class.source)
+        return unless node.parent_class.source.include? 'ActiveRecord::Migration'
 
-          process_node(node.body)
-        end
+        @migration_class = node.children.first.source
+        @migration_version = extract_version(node.parent_class.source)
+
+        process_node(node.body)
       end
 
       def extract_version(class_const)
@@ -55,6 +55,7 @@ module Trains
 
       def process_migration_field(node)
         return unless node.send_type?
+
         if node.children.count < 3
           if node.children[1] == :timestamps
             @fields.add(DTO::Field.new(:datetime, :created_at))
