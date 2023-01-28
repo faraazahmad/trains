@@ -1,5 +1,5 @@
-require "rubocop-ast"
-require "parser"
+require 'rubocop-ast'
+require 'parser'
 
 module Trains
   module Visitor
