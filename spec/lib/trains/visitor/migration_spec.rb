@@ -21,9 +21,6 @@ describe Trains::Visitor::Migration do
           ],
         version: 7.0
       )
-      # expect(parser.result).to eq(
-      #   Trains::DTO::Model.new("CreateGroups", Set.new, 7.0)
-      # )
     end
   end
 end
