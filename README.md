@@ -1,58 +1,79 @@
 # Trains
 
-Extract information about your Rails app using static analysis.
+A gem that statically analyses your Rails app and extracts information about its structure.
 
-(WIP)
+## Installation
+
+```sh
+gem install trains
+```
+
+## Usage
+
+```ruby
+require 'trains'
+
+scanner = Trains::Scanner.new('~/lib/trains_app')
+result = scanner.scan
+```
 
 ## Features
 
-Trains can currently achieve the following:
+Trains currently has the ability to achieve the following:
 
-- [x] Generate model definitions from your DB migrations
-- [x] Generate controllers definitions and list their methods
-- [ ] Generate a list of all helpers created
-- [ ] List out all the included helpers with a controller's view
-- [ ] Merge multiple DB migrations to create a single Model definition
-- [ ] Merge Rails::Model definition with a Trains Model definition
-- [ ] Be more robust in handling different types and syntax of Migrations, models, controllers etc.
+### Create Model definitions from migrations
 
-## Example
-
-You can run the CLI by executing main.rb and providing a path to a Rails app directory:
-
-```bash
-$ ruby main.rb ~/oss/sample-proj/
-```
-
-It will give you a result with all the models and controllers in your app:
+Given a DB migration in your Rails app like so:
 
 ```ruby
-#<Trains:0x0000556a1f009a40
- @controllers=
-  [#<Controller:0x0000556a1f0cb668
-    @controller_methods=#<Set: {}>,
-    @name=:ApplicationController>,
-   #<Controller:0x0000556a1f0c2518
-    @controller_methods=#<Set: {:new, :create, :edit, :delete}>,
-    @name=:BoxController>],
- @dir=#<Dir:/home/faraaz/oss/sample-proj>,
- @folder=#<Dir:/home/faraaz/oss/sample-proj>,
- @helpers=[],
- @models=
-  [#<Model:0x0000556a1ee4b898
-    @fields=
-     [{:column=>:created_at, :type=>:datetime},
-      {:column=>:updated_at, :type=>:datetime}],
-    @name=:boxes>,
-   #<Model:0x0000556a1f2bbdb0
-    @fields=
-     [{:column=>:flavor, :type=>:string},
-      {:column=>:box, :type=>:reference},
-      {:column=>:created_at, :type=>:datetime},
-      {:column=>:updated_at, :type=>:datetime}],
-    @name=:chocolates>],
- @nodes=
-  {:path=>"/home/faraaz/oss/sample-proj",
-   :children=>[...]
-   }>
+class CreateGroups < ActiveRecord::Migration[7.0]
+  def change
+    create_table :groups do |t|
+      t.string :title
+
+      t.timestamps
+    end
+    add_index :groups, :title, unique: true
+  end
+end
+```
+
+Trains will generate the following Model definition:
+
+```ruby
+Trains::DTO::Model(
+  name: 'CreateGroups',
+  fields:
+    Set[
+      Trains::DTO::Field.new(:datetime, :created_at),
+      Trains::DTO::Field.new(:datetime, :updated_at),
+      Trains::DTO::Field.new(:string, :title)
+    ],
+  version: 7.0
+)
+```
+
+### Create Controller definitions from files
+
+Given a controller in your Rails app like so:
+
+```ruby
+class BoxController < ApplicationController
+  def create; end
+
+  def edit; end
+
+  def update; end
+
+  def destroy; end
+end
+```
+
+Trains will return the following controller definition:
+
+```ruby
+Trains::DTO::Controller(
+  name: :BoxController,
+  methods: Set[:create, :edit, :update, :destroy]
+)
 ```
