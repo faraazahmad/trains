@@ -7,6 +7,7 @@ A gem that statically analyses your Rails app and extracts information about its
 ```sh
 gem install trains
 ```
+NOTE: This repo is not a valid gem yet, so installatoin will not work. sorry for the inconvenience.
 
 ## Usage
 
