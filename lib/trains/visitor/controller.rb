@@ -1,5 +1,6 @@
 module Trains
   module Visitor
+    # Visitor that parses your controllers and stores an internal model of it
     class Controller < Base
       attr_reader :controller, :is_controller, :methods
 

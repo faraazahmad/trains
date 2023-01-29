@@ -2,6 +2,7 @@ require 'yaml'
 
 module Trains
   module Visitor
+    # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
       def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model
