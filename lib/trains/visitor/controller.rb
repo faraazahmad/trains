@@ -5,7 +5,7 @@ module Trains
       attr_reader :controller, :is_controller, :methods
 
       def initialize
-        @controller = DTO::Controller.new(name: nil, methods: Set.new)
+        @controller = DTO::Controller.new(name: nil, method_list: Set.new)
         @is_class = false
         @is_controller = false
         @class_name = nil
@@ -30,7 +30,13 @@ module Trains
       # List out all controller methods
       def on_def(node)
         method_name = node.method_name
-        @controller.methods.add method_name
+        @controller.method_list.add(
+          DTO::Method.new(
+            name: method_name.to_s,
+            visibility: nil,
+            source: nil
+          )
+        )
       end
 
       def result
