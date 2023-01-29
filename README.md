@@ -42,12 +42,12 @@ Trains will generate the following Model definition:
 
 ```ruby
 Trains::DTO::Model(
-  name: 'CreateGroups',
+  name: 'Group',
   fields:
     Set[
-      Trains::DTO::Field.new(:datetime, :created_at),
-      Trains::DTO::Field.new(:datetime, :updated_at),
-      Trains::DTO::Field.new(:string, :title)
+      Trains::DTO::Field(:datetime, :created_at),
+      Trains::DTO::Field(:datetime, :updated_at),
+      Trains::DTO::Field(:string, :title)
     ],
   version: 7.0
 )
@@ -73,7 +73,7 @@ Trains will return the following controller definition:
 
 ```ruby
 Trains::DTO::Controller(
-  name: :BoxController,
+  name: 'BoxController',
   methods: Set[:create, :edit, :update, :destroy]
 )
 ```
