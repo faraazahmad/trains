@@ -87,7 +87,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activesupport (~> 7.0, >= 7.0.2.3)
+  activesupport (~> 7.0)
   fast_ignore
   railties
   rspec (~> 3.12)

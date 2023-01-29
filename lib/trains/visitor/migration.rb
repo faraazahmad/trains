@@ -8,6 +8,7 @@ module Trains
 
       def initialize
         @model = nil
+        @table_name = nil
         @is_class = false
         @is_migration = false
         @class_name = nil
@@ -46,7 +47,8 @@ module Trains
         table_modifier = node.body.children[0].method_name
         return unless allowed_table_modifiers.include? table_modifier
 
-        table_name = node.body.children[0].children[0].children[2].value
+        raw_table_name = node.body.children[0].children[0].children[2].value.to_s
+        @table_name = raw_table_name.singularize.camelize
 
         node.body.children[0].children[2].each_child_node do |child|
           process_migration_field(child)
@@ -69,7 +71,7 @@ module Trains
       end
 
       def result
-        DTO::Model.new(@migration_class, Set[*@fields], @migration_version)
+        DTO::Model.new(@table_name, Set[*@fields], @migration_version)
       end
     end
   end

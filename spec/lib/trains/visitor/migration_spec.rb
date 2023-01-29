@@ -12,7 +12,7 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to have_attributes(
-        name: 'CreateGroups',
+        name: 'Group',
         fields:
           Set[
             Trains::DTO::Field.new(:datetime, :created_at),

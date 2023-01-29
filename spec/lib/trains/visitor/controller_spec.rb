@@ -13,7 +13,7 @@ describe Trains::Visitor::Controller do
 
       expect(parser.result).to eq(
         Trains::DTO::Controller.new(
-          name: :BoxController,
+          name: 'BoxController',
           methods: Set[:create, :edit, :update, :destroy]
         )
       )

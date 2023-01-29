@@ -16,7 +16,7 @@ module Trains
         @is_class = true
 
         parent_class = node.parent_class.const_name.to_sym
-        @controller.name = node.identifier.const_name.to_sym
+        @controller.name = node.identifier.const_name
         if parent_class.nil?
           @is_controller = true if @controller.name == :ApplicationController
         elsif parent_class == :ApplicationController
