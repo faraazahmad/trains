@@ -1,5 +1,5 @@
 module Trains
   module DTO
-    Method = Struct.new(:name, :visibility, :source)
+    Method = Struct.new('Method', :name, :source, :visibility, keyword_init: true)
   end
 end
