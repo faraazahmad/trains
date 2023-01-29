@@ -14,7 +14,12 @@ describe Trains::Visitor::Controller do
       expect(parser.result).to eq(
         Trains::DTO::Controller.new(
           name: 'BoxController',
-          methods: Set[:create, :edit, :update, :destroy]
+          method_list: Set[
+            Trains::DTO::Method.new(name: 'create', visibility: nil, source: nil),
+            Trains::DTO::Method.new(name: 'edit', visibility: nil, source: nil),
+            Trains::DTO::Method.new(name: 'update', visibility: nil, source: nil),
+            Trains::DTO::Method.new(name: 'destroy', visibility: nil, source: nil),
+          ]
         )
       )
     end
