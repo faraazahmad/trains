@@ -6,7 +6,8 @@ module Trains
     # Visitor that parses controllers and returns a DTO::Controller object
     class Controller < Base
       def initialize
-        @method_list = Set[]
+        @method_list = []
+        @methods = {}
         @class_name = nil
       end
 
@@ -28,13 +29,13 @@ module Trains
       # List out all controller methods
       def on_def(node)
         method_name = node.method_name
-        @method_list.add(
+        @method_list.append(
           DTO::Method.new(name: method_name.to_s, visibility: nil, source: nil)
         )
       end
 
       def result
-        DTO::Controller.new(name: @class_name, method_list: @method_list)
+        DTO::Controller.new(name: @class_name, method_list: @method_list.uniq)
       end
     end
   end
