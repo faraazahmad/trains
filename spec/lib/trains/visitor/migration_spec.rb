@@ -14,10 +14,10 @@ describe Trains::Visitor::Migration do
       expect(parser.result).to have_attributes(
         name: 'Group',
         fields:
-          Set[
-            Trains::DTO::Field.new(:datetime, :created_at),
-            Trains::DTO::Field.new(:datetime, :updated_at),
-            Trains::DTO::Field.new(:string, :title)
+          [
+            Trains::DTO::Field.new(:title, :string),
+            Trains::DTO::Field.new(:created_at, :datetime),
+            Trains::DTO::Field.new(:updated_at, :datetime)
           ],
         version: 7.0
       )
