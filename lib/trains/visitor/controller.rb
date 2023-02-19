@@ -1,46 +1,41 @@
+require_relative '../dto/controller'
+require_relative '../dto/method'
+
 module Trains
   module Visitor
-    # Visitor that parses your controllers and stores an internal model of it
+    # Visitor that parses controllers and returns a DTO::Controller object
     class Controller < Base
-      attr_reader :controller, :is_controller, :methods
-
       def initialize
-        @controller = DTO::Controller.new(name: nil, method_list: Set.new)
-        @is_class = false
-        @is_controller = false
+        @method_list = []
+        @methods = {}
         @class_name = nil
-
-        @scope = { class: nil, method: nil, send: nil }
       end
 
       def on_class(node)
-        @is_class = true
-
+        class_name = node.identifier.const_name
         parent_class = node.parent_class.const_name.to_sym
-        @controller.name = node.identifier.const_name
-        if parent_class.nil?
-          @is_controller = true if @controller.name == :ApplicationController
-        elsif parent_class == :ApplicationController
-          @is_controller = true
-        end
 
-        return unless @is_controller
+        is_controller =
+          if parent_class.nil?
+            true if class_name == :ApplicationController
+          else
+            parent_class == :"ActionController::Base"
+          end
+        return unless is_controller
+
+        @class_name = class_name
       end
 
       # List out all controller methods
       def on_def(node)
         method_name = node.method_name
-        @controller.method_list.add(
-          DTO::Method.new(
-            name: method_name.to_s,
-            visibility: nil,
-            source: nil
-          )
+        @method_list.append(
+          DTO::Method.new(name: method_name.to_s, visibility: nil, source: nil)
         )
       end
 
       def result
-        @controller
+        DTO::Controller.new(name: @class_name, method_list: @method_list.uniq)
       end
     end
   end

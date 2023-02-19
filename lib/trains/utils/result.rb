@@ -1,1 +1,5 @@
-Result = Struct.new('Result', :data, :error, keyword_init: true)
+module Trains
+  module Utils
+    Result = Struct.new('Result', :data, :error)
+  end
+end

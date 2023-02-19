@@ -13,13 +13,15 @@ module Trains
         @is_class = false
         @is_migration = false
         @class_name = nil
-        @fields = Set.new
+        @fields = []
 
         @scope = { class: nil, method: nil, send: nil }
       end
 
       def on_class(node)
-        return unless node.parent_class.source.include? 'ActiveRecord::Migration'
+        unless node.parent_class.source.include? 'ActiveRecord::Migration'
+          return
+        end
 
         @migration_class = node.children.first.source
         @migration_version = extract_version(node.parent_class.source)
@@ -61,18 +63,18 @@ module Trains
 
         if node.children.count < 3
           if node.children[1] == :timestamps
-            @fields.add(DTO::Field.new(:datetime, :created_at))
-            @fields.add(DTO::Field.new(:datetime, :updated_at))
+            @fields.append(DTO::Field.new(:created_at, :datetime))
+            @fields.append(DTO::Field.new(:updated_at, :datetime))
           end
         elsif node.children.count >= 3
           type = node.children[1]
           value = node.children[2].value
-          @fields.add(DTO::Field.new(type, value))
+          @fields.append(DTO::Field.new(value, type))
         end
       end
 
       def result
-        DTO::Model.new(@table_name, Set[*@fields], @migration_version)
+        DTO::Model.new(@table_name, @fields, @migration_version)
       end
     end
   end
