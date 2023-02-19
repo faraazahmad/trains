@@ -11,3 +11,5 @@ group :test, :development do
 end
 
 gem "activesupport", "~> 7.0"
+
+gem "parallel", "~> 1.22"
