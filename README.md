@@ -48,10 +48,10 @@ Trains will generate the following Model definition:
 Trains::DTO::Model(
   name: 'Group',
   fields:
-    Set[
-      Trains::DTO::Field(:datetime, :created_at),
-      Trains::DTO::Field(:datetime, :updated_at),
-      Trains::DTO::Field(:string, :title)
+    [
+      Trains::DTO::Field(:title, :string),
+      Trains::DTO::Field(:created_at, :datetime),
+      Trains::DTO::Field(:updated_at, :datetime),
     ],
   version: 7.0
 )
@@ -77,8 +77,13 @@ Trains will return the following controller definition:
 
 ```ruby
 Trains::DTO::Controller(
-  name: 'BoxController',
-  methods: Set[:create, :edit, :update, :destroy]
+    name: 'BoxController',
+    method_list: [
+      Trains::DTO::Method(name: 'create', visibility: nil, source: nil),
+      Trains::DTO::Method(name: 'edit', visibility: nil, source: nil),
+      Trains::DTO::Method(name: 'update', visibility: nil, source: nil),
+      Trains::DTO::Method(name: 'destroy', visibility: nil, source: nil)
+    ]
 )
 ```
 
@@ -90,7 +95,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/trains. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/trains/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/faraazahmad/trains. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/faraazahmad/trains/blob/master/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -98,5 +103,5 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Trains project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/trains/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Trains project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/faraazahmad/trains/blob/master/CODE_OF_CONDUCT.md).
 
