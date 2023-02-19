@@ -2,6 +2,21 @@
 
 A gem that statically analyses your Rails app and extracts information about its structure.
 
+[![DeepSource](https://deepsource.io/gh/faraazahmad/trains.svg/?label=active+issues&show_trend=true&token=RKfXNZL_RQe6j2NEhXv2iOeh)](https://deepsource.io/gh/faraazahmad/trains/?ref=repository-badge)
+[![DeepSource](https://deepsource.io/gh/faraazahmad/trains.svg/?label=resolved+issues&show_trend=true&token=RKfXNZL_RQe6j2NEhXv2iOeh)](https://deepsource.io/gh/faraazahmad/trains/?ref=repository-badge)
+
+## Index
+
+1. [Installation](#installation)
+2. [Usage](#usage)
+3. [Features](#features)
+    3.1 [Create Model definitions from migrations](#create-model-definitions-from-migrations)
+    3.2 [Create controller definitions from files](#create-controller-definitions-from-files)
+4. [Development](#development)
+5. [Contributing](#contributing)
+6. [License](#license)
+7. [Code of conduct](#code-of-conduct)
+
 ## Installation
 
 Install the gem and add it to the application's Gemfile by executing:
