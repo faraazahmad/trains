@@ -19,7 +19,9 @@ module Trains
       end
 
       def on_class(node)
-        return unless node.parent_class.source.include? 'ActiveRecord::Migration'
+        unless node.parent_class.source.include? 'ActiveRecord::Migration'
+          return
+        end
 
         @migration_class = node.children.first.source
         @migration_version = extract_version(node.parent_class.source)

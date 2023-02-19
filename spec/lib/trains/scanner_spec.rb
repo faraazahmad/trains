@@ -11,8 +11,9 @@ describe Trains::Scanner do
       expect(result).to eq(
         Trains::DTO::App.new(
           controllers: Set[
-            Trains::DTO::Controller.new(name: "ApplicationController", method_list: []),
-            Trains::DTO::Controller.new(name: "BoxController", method_list: [])
+            Trains::DTO::Controller.new(name: 'ApplicationController',
+                                        method_list: []),
+            Trains::DTO::Controller.new(name: 'BoxController', method_list: [])
           ],
           models: [],
           migrations: Set[],
