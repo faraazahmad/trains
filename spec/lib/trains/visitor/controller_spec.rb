@@ -1,8 +1,9 @@
 describe Trains::Visitor::Controller do
-  let(:valid_controller) { 'spec/fixtures/box_controller.rb' }
+  let(:valid_controller) { File.expand_path "#{__FILE__}/../../../../fixtures/box_controller.rb" }
 
   context 'Given a valid controller file path' do
     it 'returns an object with its metadata' do
+      puts Dir.pwd
       parser = described_class.new
       file_ast =
         RuboCop::AST::ProcessedSource.from_file(
@@ -14,12 +15,29 @@ describe Trains::Visitor::Controller do
       expect(parser.result).to eq(
         Trains::DTO::Controller.new(
           name: 'BoxController',
-          method_list: Set[
-            Trains::DTO::Method.new(name: 'create', visibility: nil, source: nil),
-            Trains::DTO::Method.new(name: 'edit', visibility: nil, source: nil),
-            Trains::DTO::Method.new(name: 'update', visibility: nil, source: nil),
-            Trains::DTO::Method.new(name: 'destroy', visibility: nil, source: nil),
-          ]
+          method_list:
+            Set[
+              Trains::DTO::Method.new(
+                name: 'create',
+                visibility: nil,
+                source: nil
+              ),
+              Trains::DTO::Method.new(
+                name: 'edit',
+                visibility: nil,
+                source: nil
+              ),
+              Trains::DTO::Method.new(
+                name: 'update',
+                visibility: nil,
+                source: nil
+              ),
+              Trains::DTO::Method.new(
+                name: 'destroy',
+                visibility: nil,
+                source: nil
+              )
+            ]
         )
       )
     end

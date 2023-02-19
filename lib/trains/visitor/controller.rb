@@ -6,7 +6,7 @@ module Trains
     # Visitor that parses controllers and returns a DTO::Controller object
     class Controller < Base
       def initialize
-        @method_list = []
+        @method_list = Set[]
         @class_name = nil
       end
 

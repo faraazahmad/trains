@@ -1,4 +1,4 @@
-class BoxController < ApplicationController
+class BoxController < ActionController::Base
   def create; end
 
   def edit; end

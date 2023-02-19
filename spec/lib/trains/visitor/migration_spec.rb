@@ -1,5 +1,5 @@
 describe Trains::Visitor::Migration do
-  let(:valid_migration) { 'spec/fixtures/groups_migration.rb' }
+  let(:valid_migration) { File.expand_path "#{__FILE__}/../../../../fixtures/groups_migration.rb" }
 
   context 'Given a valid DB migration file path' do
     it 'returns an object with its metadata' do
