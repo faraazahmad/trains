@@ -1,5 +1,14 @@
-## [Unreleased]
+# Changelog
 
-## [0.1.0] - 2023-02-19
+All notable changes to this project will be documented in this file.
 
-- Initial release
+## [0.0.2] - 2023-02-19
+
+- Add `bin/setup` and `bin/console` for development convenience
+
+## [0.0.1] - 2023-02-19
+
+- Add AST visitors for controllers and models
+- Controller visitor returns `DTO::Controller`
+- Migration visitor returns `DTO::Model`
+- `Scanner` class is the main interface of the gem
