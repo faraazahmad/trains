@@ -1,5 +1,5 @@
-require_relative '../dto/controller'
-require_relative '../dto/method'
+require_relative "../dto/controller"
+require_relative "../dto/method"
 
 module Trains
   module Visitor
@@ -12,30 +12,32 @@ module Trains
       end
 
       def on_class(node)
-        class_name = node.identifier.const_name
-        parent_class = node.parent_class.const_name.to_sym
-
-        is_controller =
-          if parent_class.nil?
-            true if class_name == :ApplicationController
-          else
-            parent_class == :"ActionController::Base"
-          end
-        return unless is_controller
+        class_name = node.identifier.const_name.to_s
+        parent_class = node.parent_class.const_name.to_s
+        return unless controller?(parent_class)
 
         @class_name = class_name
-      end
-
-      # List out all controller methods
-      def on_def(node)
-        method_name = node.method_name
-        @method_list.append(
-          DTO::Method.new(name: method_name.to_s, visibility: nil, source: nil)
-        )
+        parse_body(node.body) unless node.body.nil?
       end
 
       def result
         DTO::Controller.new(name: @class_name, method_list: @method_list.uniq)
+      end
+
+      private
+
+      def parse_body(body)
+        body.each_child_node do |child|
+          @method_list << parse_method(child) if child.type == :def
+        end
+      end
+
+      def controller?(parent_class)
+        %w[ActionController::Base ApplicationController].include? parent_class
+      end
+
+      def parse_method(node)
+        DTO::Method.new(name: node.method_name.to_s)
       end
     end
   end

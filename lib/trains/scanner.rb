@@ -3,21 +3,19 @@ module Trains
   class Scanner
     include Utils
 
-    attr_accessor :models, :controllers, :helpers, :migrations
-
-    def initialize(folder)
+    def initialize(folder, options = {})
       @root_folder = folder
       @nodes = []
       @models = []
       @controllers = []
       @helpers = []
-      @dir = Dir.new(File.expand_path(folder))
-      Dir.chdir @dir
+      @dir = File.expand_path(folder)
+      @options = options
+
+      # Dir.chdir @dir
     end
 
     def scan
-      # @nodes = get_tree(@dir)
-
       # Check if @folder is a Rails directory before beginning analysis
       rails_dir_result = RailsDir.check @dir
       case rails_dir_result
@@ -27,13 +25,14 @@ module Trains
         return(
           Result.new(
             data: nil,
-            error: ArgumentError.new('Not a Rails directory')
+            error: ArgumentError.new("Not a Rails directory")
           )
         )
       end
 
-      @migrations = Set[*get_migrations]
-      @controllers = Set[*get_controllers]
+      @migrations = Set[*get_migrations] unless @options[:migrations] == false
+      @controllers = Set[*get_controllers] unless @options[:controllers] ==
+        false
       # @helpers = get_helpers
       # @models = get_models
 
@@ -47,47 +46,39 @@ module Trains
       )
     end
 
-    # Build central ASTStore
-    def build_ast_store
-      all_files = Dir.glob(File.join(@root_folder, '**', '*.rb'))
-      Parallel.each(all_files) do |file_path|
-        ASTStore.instance.set(
-          file_path,
-          RuboCop::AST::ProcessedSource.from_file(file_path, RUBY_VERSION.to_f)
-        )
-      end
+    def get_models
     end
 
-    def get_models; end
-
     def get_helpers
-      app_folder = @nodes[:children].find { |node| node[:path].include? 'app' }
+      app_folder = @nodes[:children].find { |node| node[:path].include? "app" }
       helpers_folder =
-        app_folder[:children].find { |node| node[:path].include? 'app/helpers' }
+        app_folder[:children].find { |node| node[:path].include? "app/helpers" }
       helpers =
         helpers_folder[:children].filter do |node|
-          node[:path].end_with? '_helper.rb'
+          node[:path].end_with? "_helper.rb"
         end
 
       @helpers = parse_util(helpers, Visitor::Helper)
     end
 
-    def get_gemfile; end
+    def get_gemfile
+    end
 
     def get_controllers
       controllers =
-        Dir.glob(File.join(@dir, 'app', 'controllers', '**', '*_controller.rb'))
+        Dir.glob(File.join(@dir, "app", "controllers", "**", "*_controller.rb"))
 
+      # puts controllers
       parse_util(controllers, Visitor::Controller)
     end
 
     def get_migrations
-      migrations = Dir.glob(File.join(@dir, 'db', 'migrate', '**', '*.rb'))
+      migrations = Dir.glob(File.join(@dir, "db", "migrate", "**", "*.rb"))
 
       parse_util(migrations, Visitor::Migration)
     end
 
-    def parse_util(file_nodes, klass)
+    def parse_util(file_nodes, visitor_class)
       unless file_nodes.class.include? Enumerable
         return(
           Result.new(
@@ -104,7 +95,7 @@ module Trains
         Parallel.map(file_nodes) do |node|
           processed_source =
             RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
-          visitor = klass.new
+          visitor = visitor_class.new
           visitor.process(processed_source.ast)
           visitor.result
         end
@@ -114,13 +105,13 @@ module Trains
       end
     end
 
-    def get_tree(node, prefix = '')
+    def get_tree(node, prefix = "")
       path = File.join(prefix, node)
       obj = { path: nil }
 
       # puts "DEBUG: #{path} #{ FastIgnore.new.allowed? path }"
       if path != @dir.to_path &&
-         FastIgnore.new.allowed?(path, directory: false) == false
+           FastIgnore.new.allowed?(path, directory: false) == false
         return nil
       end
 
