@@ -11,8 +11,6 @@ module Trains
       @helpers = []
       @dir = File.expand_path(folder)
       @options = options
-
-      # Dir.chdir @dir
     end
 
     def scan
@@ -46,6 +44,8 @@ module Trains
       )
     end
 
+    private
+
     def get_models
     end
 
@@ -68,14 +68,19 @@ module Trains
       controllers =
         Dir.glob(File.join(@dir, "app", "controllers", "**", "*_controller.rb"))
 
-      # puts controllers
-      parse_util(controllers, Visitor::Controller)
+      controller_results = parse_util(controllers, Visitor::Controller)
+      controller_results
+        .select { |result| result.error.nil? }
+        .map { |result| result.data }
     end
 
     def get_migrations
       migrations = Dir.glob(File.join(@dir, "db", "migrate", "**", "*.rb"))
 
-      parse_util(migrations, Visitor::Migration)
+      migration_results = parse_util(migrations, Visitor::Migration)
+      migration_results
+        .select { |result| result.error.nil? }
+        .map { |result| result.data }
     end
 
     def parse_util(file_nodes, visitor_class)
@@ -91,16 +96,15 @@ module Trains
         )
       end
 
-      begin
-        Parallel.map(file_nodes) do |node|
-          processed_source =
-            RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
-          visitor = visitor_class.new
-          visitor.process(processed_source.ast)
-          visitor.result
-        end
+      Parallel.map(file_nodes) do |node|
+        processed_source =
+          RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
+        visitor = visitor_class.new
+        visitor.process(processed_source.ast)
+        Result.new(data: visitor.result, error: nil)
       rescue StandardError => e
-        puts e.backtrace
+        puts "An error occurred while parsing #{node}. Use debug option to view backtrace. Skipping file..."
+        puts e.backtrace if @options[:debug]
         Result.new(data: nil, error: e)
       end
     end
