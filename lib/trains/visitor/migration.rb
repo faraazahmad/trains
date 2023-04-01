@@ -1,10 +1,10 @@
-require 'yaml'
+require "yaml"
 
 module Trains
   module Visitor
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
-      def_node_matcher :send_node?, '(send nil? ...)'
+      def_node_matcher :send_node?, "(send nil? ...)"
       attr_reader :is_migration, :model
 
       def initialize
@@ -19,7 +19,7 @@ module Trains
       end
 
       def on_class(node)
-        unless node.parent_class.source.include? 'ActiveRecord::Migration'
+        unless node.parent_class.source.include? "ActiveRecord::Migration"
           return
         end
 
@@ -29,6 +29,12 @@ module Trains
         process_node(node.body)
       end
 
+      def result
+        DTO::Model.new(@table_name, @fields, @migration_version)
+      end
+
+      private
+
       def extract_version(class_const)
         match = class_const.match(/\d+.\d+/)
         return nil if match.nil?
@@ -37,7 +43,9 @@ module Trains
       end
 
       def process_node(node)
-        process_def_node(node) if node.def_type?
+        return unless node.def_type?
+
+        process_def_node(node)
       end
 
       def process_def_node(node)
@@ -50,7 +58,8 @@ module Trains
         table_modifier = node.body.children[0].method_name
         return unless allowed_table_modifiers.include? table_modifier
 
-        raw_table_name = node.body.children[0].children[0].children[2].value.to_s
+        raw_table_name =
+          node.body.children[0].children[0].children[2].value.to_s
         @table_name = raw_table_name.singularize.camelize
 
         node.body.children[0].children[2].each_child_node do |child|
@@ -71,10 +80,6 @@ module Trains
           value = node.children[2].value
           @fields.append(DTO::Field.new(value, type))
         end
-      end
-
-      def result
-        DTO::Model.new(@table_name, @fields, @migration_version)
       end
     end
   end
