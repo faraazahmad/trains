@@ -1,10 +1,10 @@
-require "yaml"
+require 'yaml'
 
 module Trains
   module Visitor
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
-      def_node_matcher :send_node?, "(send nil? ...)"
+      def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model
 
       def initialize
@@ -19,7 +19,7 @@ module Trains
       end
 
       def on_class(node)
-        unless node.parent_class.source.include? "ActiveRecord::Migration"
+        unless node.parent_class.source.include? 'ActiveRecord::Migration'
           return
         end
 

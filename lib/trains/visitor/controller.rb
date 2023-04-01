@@ -1,5 +1,5 @@
-require_relative "../dto/controller"
-require_relative "../dto/method"
+require_relative '../dto/controller'
+require_relative '../dto/method'
 
 module Trains
   module Visitor

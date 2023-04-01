@@ -23,14 +23,14 @@ module Trains
         return(
           Result.new(
             data: nil,
-            error: ArgumentError.new("Not a Rails directory")
+            error: ArgumentError.new('Not a Rails directory')
           )
         )
       end
 
       @migrations = Set[*get_migrations] unless @options[:migrations] == false
       @controllers = Set[*get_controllers] unless @options[:controllers] ==
-        false
+                                                  false
       # @helpers = get_helpers
       # @models = get_models
 
@@ -46,27 +46,25 @@ module Trains
 
     private
 
-    def get_models
-    end
+    def get_models; end
 
     def get_helpers
-      app_folder = @nodes[:children].find { |node| node[:path].include? "app" }
+      app_folder = @nodes[:children].find { |node| node[:path].include? 'app' }
       helpers_folder =
-        app_folder[:children].find { |node| node[:path].include? "app/helpers" }
+        app_folder[:children].find { |node| node[:path].include? 'app/helpers' }
       helpers =
         helpers_folder[:children].filter do |node|
-          node[:path].end_with? "_helper.rb"
+          node[:path].end_with? '_helper.rb'
         end
 
       @helpers = parse_util(helpers, Visitor::Helper)
     end
 
-    def get_gemfile
-    end
+    def get_gemfile; end
 
     def get_controllers
       controllers =
-        Dir.glob(File.join(@dir, "app", "controllers", "**", "*_controller.rb"))
+        Dir.glob(File.join(@dir, 'app', 'controllers', '**', '*_controller.rb'))
 
       controller_results = parse_util(controllers, Visitor::Controller)
       controller_results
@@ -75,7 +73,7 @@ module Trains
     end
 
     def get_migrations
-      migrations = Dir.glob(File.join(@dir, "db", "migrate", "**", "*.rb"))
+      migrations = Dir.glob(File.join(@dir, 'db', 'migrate', '**', '*.rb'))
 
       migration_results = parse_util(migrations, Visitor::Migration)
       migration_results
@@ -109,13 +107,13 @@ module Trains
       end
     end
 
-    def get_tree(node, prefix = "")
+    def get_tree(node, prefix = '')
       path = File.join(prefix, node)
       obj = { path: nil }
 
       # puts "DEBUG: #{path} #{ FastIgnore.new.allowed? path }"
       if path != @dir.to_path &&
-           FastIgnore.new.allowed?(path, directory: false) == false
+         FastIgnore.new.allowed?(path, directory: false) == false
         return nil
       end
 
