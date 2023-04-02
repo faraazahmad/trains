@@ -1,6 +1,6 @@
 name: RSpec tests
 
-on: push
+on: [push, pull_request]
 
 jobs:
   build:
@@ -16,6 +16,6 @@ jobs:
         run: |
           gem install bundler
           bundle install --jobs 4 --retry 3
-      
+
       - name: Build and test with rspec
         run: bundle exec rspec
