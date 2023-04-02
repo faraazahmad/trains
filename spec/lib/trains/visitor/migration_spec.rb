@@ -3,16 +3,16 @@ describe Trains::Visitor::Migration do
     File.expand_path "#{__FILE__}/../../../../fixtures/groups_migration.rb"
   end
 
-  let (:group_users) do
+  let(:group_users) do
     File.expand_path "#{__FILE__}/../../../../fixtures/groups_users_migration.rb"
   end
 
-  let (:add_pending_migration) do
+  let(:add_pending_migration) do
     File.expand_path "#{__FILE__}/../../../../fixtures/add_pending_migration.rb"
   end
 
-  context "Given a valid DB migration file path" do
-    it "returns an object with its metadata" do
+  context 'Given a valid DB migration file path' do
+    it 'returns an object with its metadata' do
       parser = described_class.new
       file_ast =
         RuboCop::AST::ProcessedSource.from_file(
@@ -22,7 +22,7 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to have_attributes(
-        name: "Group",
+        name: 'Group',
         fields: [
           Trains::DTO::Field.new(:title, :string),
           Trains::DTO::Field.new(:created_at, :datetime),
@@ -33,8 +33,8 @@ describe Trains::Visitor::Migration do
     end
   end
 
-  context "Given a migration with null:false timestamp" do
-    it "returns the right migration object" do
+  context 'Given a migration with null:false timestamp' do
+    it 'returns the right migration object' do
       parser = described_class.new
       file_ast =
         RuboCop::AST::ProcessedSource.from_file(
@@ -44,7 +44,7 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to have_attributes(
-        name: "GroupUser",
+        name: 'GroupUser',
         fields: [
           Trains::DTO::Field.new(:group_id, :integer),
           Trains::DTO::Field.new(:user_id, :integer),
@@ -56,8 +56,8 @@ describe Trains::Visitor::Migration do
     end
   end
 
-  context "Given a valid DB migration with add column on a single line" do
-    it "returns an object with its metadata" do
+  context 'Given a valid DB migration with add column on a single line' do
+    it 'returns an object with its metadata' do
       parser = described_class.new
       file_ast =
         RuboCop::AST::ProcessedSource.from_file(
@@ -67,7 +67,7 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to have_attributes(
-        name: "UserStat",
+        name: 'UserStat',
         fields: [Trains::DTO::Field.new(:pending_posts_count, :integer)],
         version: 6.1
       )

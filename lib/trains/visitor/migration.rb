@@ -1,10 +1,10 @@
-require "yaml"
+require 'yaml'
 
 module Trains
   module Visitor
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
-      def_node_matcher :send_node?, "(send nil? ...)"
+      def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model
 
       def initialize
@@ -19,7 +19,7 @@ module Trains
       end
 
       def on_class(node)
-        unless node.parent_class.source.include? "ActiveRecord::Migration"
+        unless node.parent_class.source.include? 'ActiveRecord::Migration'
           return
         end
 
@@ -57,7 +57,7 @@ module Trains
         return unless allowed_method_names.include? method_name
 
         table_modifier =
-          if node.body.children[0] == nil
+          if node.body.children[0].nil?
             block_type_modifier = false
             # if table modifier is a one-liner method call
             node.body.children[1]
@@ -95,7 +95,7 @@ module Trains
           @fields.append(DTO::Field.new(:updated_at, :datetime))
           return
         end
-        
+
         type = node.children[1]
         value = node.children[2].value unless node.children[2].hash_type?
         @fields.append(DTO::Field.new(value, type))
