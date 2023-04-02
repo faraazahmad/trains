@@ -36,5 +36,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'parallel', '~> 1.22'
   spec.add_dependency 'rubocop-ast', '~> 1.16'
   spec.add_dependency 'zeitwerk', '~> 2.5'
-    spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end
