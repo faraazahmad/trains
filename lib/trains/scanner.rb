@@ -97,15 +97,19 @@ module Trains
       end
 
       Parallel.map(file_nodes) do |node|
-        processed_source =
-          RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
-        visitor = visitor_class.new
-        visitor.process(processed_source.ast)
-        Result.new(data: visitor.result, error: nil)
-      rescue StandardError => e
-        puts "An error occurred while parsing #{node}. Use debug option to view backtrace. Skipping file..."
-        puts e.backtrace if @options[:debug]
-        Result.new(data: nil, error: e)
+        begin
+          processed_source =
+            RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
+          visitor = visitor_class.new
+          visitor.process(processed_source.ast)
+
+          Result.new(data: visitor.result, error: nil)
+        rescue StandardError => e
+          puts "An error occurred while parsing #{node}. Use debug option to view backtrace. Skipping file..."
+          puts e.backtrace if @options[:debug]
+
+          Result.new(data: nil, error: e)
+        end
       end
     end
 
