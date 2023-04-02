@@ -95,6 +95,7 @@ module Trains
           @fields.append(DTO::Field.new(:updated_at, :datetime))
           return
         end
+        
         type = node.children[1]
         value = node.children[2].value unless node.children[2].hash_type?
         @fields.append(DTO::Field.new(value, type))
