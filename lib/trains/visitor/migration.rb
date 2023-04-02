@@ -50,12 +50,20 @@ module Trains
 
       def process_def_node(node)
         allowed_method_names = %i[change up down]
-        allowed_table_modifiers = %i[create_table update_column]
+        allowed_table_modifiers = %i[create_table update_column add_column]
 
         method_name = node.method_name
         return unless allowed_method_names.include? method_name
 
-        table_modifier = node.body.children[0].method_name
+        table_modifier =
+          if node.body.children[0] == nil
+            # if table modifier is a one-liner method call
+            node.body.children[1]
+          elsif node.body.children[0].block_type?
+            # if table modifier is in a block
+            node.body.children[0].method_name
+          end
+
         return unless allowed_table_modifiers.include? table_modifier
 
         raw_table_name =
@@ -70,16 +78,14 @@ module Trains
       def process_migration_field(node)
         return unless node.send_type?
 
-        if node.children.count < 3
-          if node.children[1] == :timestamps
-            @fields.append(DTO::Field.new(:created_at, :datetime))
-            @fields.append(DTO::Field.new(:updated_at, :datetime))
-          end
-        elsif node.children.count >= 3
-          type = node.children[1]
-          value = node.children[2].value
-          @fields.append(DTO::Field.new(value, type))
+        if node.children[1] == :timestamps
+          @fields.append(DTO::Field.new(:created_at, :datetime))
+          @fields.append(DTO::Field.new(:updated_at, :datetime))
+          return
         end
+        type = node.children[1]
+        value = node.children[2].value unless node.children[2].hash_type?
+        @fields.append(DTO::Field.new(value, type))
       end
     end
   end
