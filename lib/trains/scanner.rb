@@ -46,8 +46,7 @@ module Trains
 
     private
 
-    def get_models
-    end
+    def get_models; end
 
     def get_helpers
       app_folder = @nodes[:children].find { |node| node[:path].include? "app" }
@@ -61,8 +60,7 @@ module Trains
       @helpers = parse_util(helpers, Visitor::Helper)
     end
 
-    def get_gemfile
-    end
+    def get_gemfile; end
 
     def get_controllers
       controllers =
