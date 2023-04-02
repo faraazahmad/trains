@@ -67,13 +67,9 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to have_attributes(
-        name: "Group",
-        fields: [
-          Trains::DTO::Field.new(:title, :string),
-          Trains::DTO::Field.new(:created_at, :datetime),
-          Trains::DTO::Field.new(:updated_at, :datetime)
-        ],
-        version: 7.0
+        name: "UserStat",
+        fields: [Trains::DTO::Field.new(:pending_posts_count, :integer)],
+        version: 6.1
       )
     end
   end
