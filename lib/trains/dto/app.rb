@@ -1,13 +1,6 @@
 module Trains
   module DTO
-    App = Struct.new(
-      'App',
-      :name,
-      :controllers,
-      :models,
-      :migrations,
-      :helpers,
-      keyword_init: true
-    )
+    App =
+      Data.define(:name, :controllers, :models, :migrations, :helpers, :routes)
   end
 end

@@ -1,7 +1,7 @@
-require 'set'
+require "set"
 
 module Trains
   module DTO
-    Controller = Struct.new('Controller', :name, :method_list, keyword_init: true)
+    Controller = Data.define(:name, :method_list)
   end
 end

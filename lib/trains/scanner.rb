@@ -31,6 +31,7 @@ module Trains
       @migrations = Set[*get_migrations] unless @options[:migrations] == false
       @controllers = Set[*get_controllers] unless @options[:controllers] ==
         false
+      @routes = Set[*get_routes] unless @options[:routes] == false
       # @helpers = get_helpers
       # @models = get_models
 
@@ -40,13 +41,24 @@ module Trains
         controllers: @controllers,
         models: @models,
         migrations: @migrations,
-        helpers: @helpers
+        helpers: @helpers,
+        routes: @routes
       )
     end
 
     private
 
-    def get_models; end
+    def get_routes
+      route_file = [File.join(@dir, "config", "routes.rb")]
+
+      routes_results = parse_util(route_file, Visitor::Route)
+      routes_results
+        .select { |result| result.error.nil? }
+        .map { |result| result.data }
+    end
+
+    def get_models
+    end
 
     def get_helpers
       app_folder = @nodes[:children].find { |node| node[:path].include? "app" }
@@ -60,7 +72,8 @@ module Trains
       @helpers = parse_util(helpers, Visitor::Helper)
     end
 
-    def get_gemfile; end
+    def get_gemfile
+    end
 
     def get_controllers
       controllers =
