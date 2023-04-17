@@ -10,6 +10,8 @@ describe Trains::Scanner do
 
       expect(result).to eq(
         Trains::DTO::App.new(
+          name: nil,
+          routes: Set[],
           controllers:
             Set[
               Trains::DTO::Controller.new(

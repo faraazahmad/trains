@@ -1,5 +1,5 @@
 module Trains
   module DTO
-    Model = Struct.new(:name, :fields, :version)
+    Model = Data.define(:name, :fields, :version)
   end
 end
