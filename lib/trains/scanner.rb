@@ -28,12 +28,12 @@ module Trains
         )
       end
 
-      @models = Set[*get_models] unless @options[:models] == false
-      @migrations = Set[*get_migrations] unless @options[:migrations] == false
-      @controllers = Set[*get_controllers] unless @options[:controllers] ==
+      @models = get_models.to_set unless @options[:models] == false
+      @migrations = get_migrations.to_set unless @options[:migrations] == false
+      @controllers = get_controllers.to_set unless @options[:controllers] ==
         false
-      @routes = Set[*get_routes] unless @options[:routes] == false
-      # @helpers = get_helpers
+      @routes = get_routes.to_set unless @options[:routes] == false
+      # TODO: @helpers = get_helpers
 
       # Create instance of Trains::DTO::App
       DTO::App.new(
@@ -55,28 +55,21 @@ module Trains
       routes_results
         .select { |result| result.error.nil? }
         .map { |result| result.data }
+        .flatten
     end
 
     def get_models
       schema_file = [File.join(@dir, "db", "schema.rb")]
-      return [] unless File.exist?(schema_file.first)
+      return unless File.exist?(schema_file.first)
 
       models_results = parse_util(schema_file, Visitor::Schema)
       models_results
         .select { |result| result.error.nil? }
         .map { |result| result.data }
+        .flatten
     end
 
     def get_helpers
-      app_folder = @nodes[:children].find { |node| node[:path].include? "app" }
-      helpers_folder =
-        app_folder[:children].find { |node| node[:path].include? "app/helpers" }
-      helpers =
-        helpers_folder[:children].filter do |node|
-          node[:path].end_with? "_helper.rb"
-        end
-
-      @helpers = parse_util(helpers, Visitor::Helper)
     end
 
     def get_gemfile
@@ -90,6 +83,7 @@ module Trains
       controller_results
         .select { |result| result.error.nil? }
         .map { |result| result.data }
+        .flatten
     end
 
     def get_migrations
