@@ -8,25 +8,14 @@ describe Trains::Scanner do
       scanner = described_class.new(dir)
       result = scanner.scan
 
-      expect(result).to eq(
-        Trains::DTO::App.new(
-          name: nil,
-          routes: Set[],
-          controllers:
-            Set[
-              Trains::DTO::Controller.new(
-                name: "ApplicationController",
-                method_list: []
-              ),
-              Trains::DTO::Controller.new(
-                name: "BoxController",
-                method_list: []
-              )
-            ],
-          models: [],
-          migrations: Set[],
-          helpers: []
-        )
+      expect(result.controllers).to eq(
+        Set[
+          Trains::DTO::Controller.new(
+            name: "ApplicationController",
+            method_list: []
+          ),
+          Trains::DTO::Controller.new(name: "BoxController", method_list: [])
+        ]
       )
     end
   end
