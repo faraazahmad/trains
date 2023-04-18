@@ -28,12 +28,12 @@ module Trains
         )
       end
 
+      @models = Set[*get_models] unless @options[:models] == false
       @migrations = Set[*get_migrations] unless @options[:migrations] == false
       @controllers = Set[*get_controllers] unless @options[:controllers] ==
         false
       @routes = Set[*get_routes] unless @options[:routes] == false
       # @helpers = get_helpers
-      # @models = get_models
 
       # Create instance of Trains::DTO::App
       DTO::App.new(
@@ -58,6 +58,13 @@ module Trains
     end
 
     def get_models
+      schema_file = [File.join(@dir, "db", "schema.rb")]
+      return [] unless File.exist?(schema_file.first)
+
+      models_results = parse_util(schema_file, Visitor::Schema)
+      models_results
+        .select { |result| result.error.nil? }
+        .map { |result| result.data }
     end
 
     def get_helpers
