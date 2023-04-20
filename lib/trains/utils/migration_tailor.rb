@@ -5,21 +5,26 @@ module Trains
         models = {}
 
         migrations.each do |mig|
-          if mig.modifier == :create_table
+          case mig.modifier
+          when :create_table
             models[mig.table_name] = {}
-            models[mig.table_name][:fields] = mig.fields
-          elsif mig.modifier == :add_column
-            models[mig.table_name][:fields].push(*mig.fields)
-          elsif mig.modifier == :remove_column
+            models[mig.table_name] = Trains::DTO::Model.new(
+              name: mig.table_name,
+              fields: mig.fields,
+              version: mig.version
+            )
+          when :add_column
+            models[mig.table_name].fields.push(*mig.fields)
+          when :remove_column
             column =
               models[mig.table_name].fields.find do |field|
                 field.name == mig.fields.first.name
               end
             models[mig.table_name].fields.delete(column)
-          elsif mig.modifier == :change_table
-            # TODO: handle removing columns
-            # TODO: handle renaming columns
-          elsif mig.modifier == :change_column
+          when :change_table
+          # TODO: handle removing columns
+          # TODO: handle renaming columns
+          when :change_column
             # get column
             column =
               models[mig.table_name].fields.find do |field|
