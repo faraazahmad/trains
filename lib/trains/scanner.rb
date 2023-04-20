@@ -5,10 +5,9 @@ module Trains
 
     def initialize(folder, options = {})
       @root_folder = folder
-      @nodes = []
-      @models = []
-      @controllers = []
-      @helpers = []
+      @models = {}
+      @controllers = {}
+      @helpers = {}
       @dir = File.expand_path(folder)
       @options = options
     end
@@ -23,15 +22,13 @@ module Trains
         return(
           Result.new(
             data: nil,
-            error: ArgumentError.new("Not a Rails directory")
+            error: ArgumentError.new('Not a Rails directory')
           )
         )
       end
 
-      @models = get_models.to_set unless @options[:models] == false
-      @migrations = get_migrations.to_set unless @options[:migrations] == false
-      @controllers = get_controllers.to_set unless @options[:controllers] ==
-        false
+      @models = generate_models unless @options[:models] == false
+      @controllers = get_controllers unless @options[:controllers] == false
       @routes = get_routes.to_set unless @options[:routes] == false
       # TODO: @helpers = get_helpers
 
@@ -40,7 +37,6 @@ module Trains
         name: nil,
         controllers: @controllers,
         models: @models,
-        migrations: @migrations,
         helpers: @helpers,
         routes: @routes
       )
@@ -48,51 +44,65 @@ module Trains
 
     private
 
+    # Generate models from either db/schema.rb
+    # else stitch together migrations to create models
+    def generate_models
+      return get_models if File.exist?(File.join(@dir, 'db', 'schema.rb'))
+
+      migrations = get_migrations
+      Utils::MigrationTailor.stitch(migrations)
+    end
+
     def get_routes
-      route_file = [File.join(@dir, "config", "routes.rb")]
+      route_file = [File.join(@dir, 'config', 'routes.rb')]
 
       routes_results = parse_util(route_file, Visitor::Route)
       routes_results
         .select { |result| result.error.nil? }
-        .map { |result| result.data }
+        .map(&:data)
         .flatten
     end
 
     def get_models
-      schema_file = [File.join(@dir, "db", "schema.rb")]
-      return unless File.exist?(schema_file.first)
-
+      result_hash = {}
+      schema_file = [File.join(@dir, 'db', 'schema.rb')]
       models_results = parse_util(schema_file, Visitor::Schema)
+
       models_results
         .select { |result| result.error.nil? }
-        .map { |result| result.data }
+        .map(&:data)
         .flatten
+        .each { |model| result_hash[model.name] = model }
+
+      result_hash
     end
 
-    def get_helpers
-    end
+    def get_helpers; end
 
-    def get_gemfile
-    end
+    def get_gemfile; end
 
     def get_controllers
+      result_hash = {}
       controllers =
-        Dir.glob(File.join(@dir, "app", "controllers", "**", "*_controller.rb"))
-
+        Dir.glob(File.join(@dir, 'app', 'controllers', '**', '*_controller.rb'))
       controller_results = parse_util(controllers, Visitor::Controller)
+
       controller_results
         .select { |result| result.error.nil? }
-        .map { |result| result.data }
+        .map(&:data)
         .flatten
+        .each { |controller| result_hash[controller.name] = controller }
+
+      result_hash
     end
 
     def get_migrations
-      migrations = Dir.glob(File.join(@dir, "db", "migrate", "**", "*.rb"))
-
+      migrations = Dir.glob(File.join(@dir, 'db', 'migrate', '**', '*.rb'))
       migration_results = parse_util(migrations, Visitor::Migration)
+
       migration_results
         .select { |result| result.error.nil? }
-        .map { |result| result.data }
+        .map(&:data)
     end
 
     def parse_util(file_nodes, visitor_class)
@@ -109,42 +119,21 @@ module Trains
       end
 
       Parallel.map(file_nodes) do |node|
-        begin
-          processed_source =
-            RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
-          visitor = visitor_class.new
-          visitor.process(processed_source.ast)
+        processed_source =
+          RuboCop::AST::ProcessedSource.from_file(node, RUBY_VERSION.to_f)
+        visitor = visitor_class.new
+        visitor.process(processed_source.ast)
 
-          Result.new(data: visitor.result, error: nil)
-        rescue StandardError => e
-          puts "An error occurred while parsing #{node}. Use debug option to view backtrace. Skipping file..."
-          puts e.backtrace if @options[:debug]
-
-          Result.new(data: nil, error: e)
+        Result.new(data: visitor.result, error: nil)
+      rescue StandardError => e
+        puts "An error occurred while parsing #{node}. Use debug option to view backtrace. Skipping file..."
+        if @options[:debug]
+          puts e.message
+          puts e.backtrace
         end
+
+        Result.new(data: nil, error: e)
       end
-    end
-
-    def get_tree(node, prefix = "")
-      path = File.join(prefix, node)
-      obj = { path: nil }
-
-      # puts "DEBUG: #{path} #{ FastIgnore.new.allowed? path }"
-      if path != @dir.to_path &&
-           FastIgnore.new.allowed?(path, directory: false) == false
-        return nil
-      end
-
-      if Dir.exist? path
-        children = []
-        Dir.each_child path do |child|
-          child_node = get_tree(child, path)
-          children.append(child_node) unless child_node.nil?
-        end
-        obj[:children] = children
-      end
-
-      obj
     end
   end
 end

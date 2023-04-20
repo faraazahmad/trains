@@ -25,6 +25,7 @@ module Trains
 
       def on_block(node)
         return unless route_parent?(node)
+        return if node.body.nil?
 
         node.body.each_child_node do |child|
           ALLOWED_VERBS.each do |verb|
