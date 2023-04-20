@@ -22,7 +22,6 @@ module Trains
               end
             models[mig.table_name].fields.delete(column)
           when :change_table
-          # TODO: handle removing columns
           # TODO: handle renaming columns
           when :change_column
             # get column
