@@ -74,7 +74,48 @@ describe Trains::Utils::MigrationTailor do
         Trains::DTO::Model.new(
           name: 'Post',
           fields: [
-            Trains::DTO::Field.new(:more, :text),
+            Trains::DTO::Field.new(:more, :text)
+          ],
+          version: 5.2
+        )
+        }
+      )
+    end
+  end
+
+  context 'when migrations create_table, change_column' do
+    let(:create_change_migs) do
+      [
+        Trains::DTO::Migration.new(
+          table_name: 'Post',
+          modifier: :create_table,
+          fields: [
+            Trains::DTO::Field.new(:title, :string),
+            Trains::DTO::Field.new(:more, :string)
+          ],
+          version: 5.2
+        ),
+        Trains::DTO::Migration.new(
+          table_name: 'Post',
+          modifier: :change_column,
+          fields: [
+            Trains::DTO::Field.new(:more, :text)
+          ],
+          version: 7.1
+        )
+      ]
+    end
+
+    it 'creates a model and removes title column from it' do
+      models = Trains::Utils::MigrationTailor.stitch(create_change_migs)
+      expect(models).to eq(
+        {
+          'Post' =>
+        Trains::DTO::Model.new(
+          name: 'Post',
+          fields: [
+            Trains::DTO::Field.new(:title, :string),
+            Trains::DTO::Field.new(:more, :text)
           ],
           version: 5.2
         )
