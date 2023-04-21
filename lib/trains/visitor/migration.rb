@@ -9,6 +9,7 @@ module Trains
 
       def initialize
         @model = nil
+        @table_modifier = nil
         @table_name = nil
         @is_class = false
         @is_migration = false
@@ -30,7 +31,12 @@ module Trains
       end
 
       def result
-        DTO::Model.new(@table_name, @fields, @migration_version)
+        DTO::Migration.new(
+          table_name: @table_name,
+          modifier: @table_modifier,
+          fields: @fields,
+          version: @migration_version
+        )
       end
 
       private
@@ -50,11 +56,19 @@ module Trains
 
       def process_def_node(node)
         allowed_method_names = %i[change up down]
-        allowed_table_modifiers = %i[create_table update_column add_column]
+        allowed_table_modifiers = %i[
+          create_table
+          change_table
+          update_column
+          add_column
+          remove_column
+          change_column
+        ]
         block_type_modifier = false
 
         method_name = node.method_name
         return unless allowed_method_names.include? method_name
+        return if node.body.nil?
 
         table_modifier =
           if node.body.children[0] == nil
@@ -67,6 +81,8 @@ module Trains
             node.body.children[0].method_name
           end
         return unless allowed_table_modifiers.include? table_modifier
+
+        @table_modifier = table_modifier
 
         # Get the name of the table being modified
         if block_type_modifier
@@ -81,8 +97,8 @@ module Trains
           raw_table_name = node.body.children[2].value.to_s
           @table_name = raw_table_name.singularize.camelize
 
-          field_name = node.body.children[3].value
-          field_type = node.body.children[4].value
+          field_name = node.body.children[3]&.value
+          field_type = node.body.children[4]&.value
           @fields.append(DTO::Field.new(field_name, field_type))
         end
       end
@@ -95,7 +111,7 @@ module Trains
           @fields.append(DTO::Field.new(:updated_at, :datetime))
           return
         end
-        
+
         type = node.children[1]
         value = node.children[2].value unless node.children[2].hash_type?
         @fields.append(DTO::Field.new(value, type))
