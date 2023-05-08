@@ -11,10 +11,10 @@ describe Trains::Scanner do
       expect(result.controllers).to eq(
         {
           'ApplicationController' => Trains::DTO::Controller.new(
-            name: 'ApplicationController', method_list: []
+            name: 'ApplicationController', method_list: [], callbacks: []
           ),
           'BoxController' => Trains::DTO::Controller.new(name: 'BoxController',
-                                                       method_list: [])
+                                                       method_list: [], callbacks: [])
         }
       )
     end
