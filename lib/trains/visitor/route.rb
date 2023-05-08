@@ -1,8 +1,11 @@
-require_relative "../dto/route"
+require_relative '../dto/route'
 
 module Trains
   module Visitor
+    # Visitor for Parsing Rails routes
     class Route < Base
+      include Utils::Args
+
       def_node_matcher :route_parent?, <<~PATTERN
         (block (send (send (send
           (const nil? :Rails) :application) :routes) :draw)
@@ -13,7 +16,7 @@ module Trains
         (send nil? %1 ...)
       PATTERN
 
-      ALLOWED_VERBS = %i[get put post update delete resources scope]
+      ALLOWED_VERBS = %i[get put post update delete resources scope].freeze
 
       def initialize
         @route_list = []
@@ -46,33 +49,7 @@ module Trains
             node.arguments[0].value
           end
         options = parse_hash(node.arguments[1])
-        DTO::Route.new(method: method, param: param, options: options)
-      end
-
-      def parse_hash(node)
-        options = {}
-        return options unless node.type == :hash
-
-        node.each_pair { |key, value| options[key.value] = parse_value(value) }
-      rescue StandardError => e
-        puts node.parent
-      ensure
-        return options
-      end
-
-      def parse_value(node)
-        case node.type
-        when :hash
-          parse_hash(node)
-        when :array
-          node.values.map { |value| parse_value(value) }
-        when :send
-          if node.method_name == :redirect
-            { redirect: node.arguments.first.value }
-          end
-        else
-          node.value
-        end
+        DTO::Route.new(method:, param:, options:)
       end
     end
   end
