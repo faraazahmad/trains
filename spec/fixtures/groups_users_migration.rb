@@ -1,6 +1,6 @@
 class GroupUsers < ActiveRecord::Migration[4.2]
   def change
-    create_table :group_users, force: true do |t|
+    create_table :group_users do |t|
       t.integer :group_id, null: false
       t.integer :user_id, null: false
       t.timestamps null: false

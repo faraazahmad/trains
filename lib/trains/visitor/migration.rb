@@ -1,10 +1,10 @@
-require "yaml"
+require 'yaml'
 
 module Trains
   module Visitor
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
-      def_node_matcher :send_node?, "(send nil? ...)"
+      def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model
 
       def initialize
@@ -20,14 +20,14 @@ module Trains
       end
 
       def on_class(node)
-        unless node.parent_class.source.include? "ActiveRecord::Migration"
+        unless node.parent_class.source.include? 'ActiveRecord::Migration'
           return
         end
 
         @migration_class = node.children.first.source
         @migration_version = extract_version(node.parent_class.source)
 
-        process_node(node.body)
+        process_def_node(node.body) unless node.def_type?
       end
 
       def result
@@ -48,12 +48,6 @@ module Trains
         match.to_s.to_f
       end
 
-      def process_node(node)
-        return unless node.def_type?
-
-        process_def_node(node)
-      end
-
       def process_def_node(node)
         allowed_method_names = %i[change up down]
         allowed_table_modifiers = %i[
@@ -70,13 +64,18 @@ module Trains
         return unless allowed_method_names.include? method_name
         return if node.body.nil?
 
+        # binding.irb
         table_modifier =
-          if node.body.children[0] == nil
+          if node.body.children[0].nil?
             block_type_modifier = false
             # if table modifier is a one-liner method call
             node.body.children[1]
           elsif node.body.children[0].block_type?
             block_type_modifier = true
+            # if table modifier is in a block
+            node.body.children[0].method_name
+          elsif node.body.children[0].send_type?
+            send_type_modifier = true
             # if table modifier is in a block
             node.body.children[0].method_name
           end
@@ -88,19 +87,24 @@ module Trains
         if block_type_modifier
           raw_table_name =
             node.body.children[0].children[0].children[2].value.to_s
-          @table_name = raw_table_name.singularize.camelize
 
           node.body.children[0].children[2].each_child_node do |child|
             process_migration_field(child)
           end
+        elsif send_type_modifier
+          raw_table_name = node.body.children[0].children[2].value.to_s
+          node.body.children[2].each_child_node do |child|
+            process_migration_field(child)
+          end
         else
           raw_table_name = node.body.children[2].value.to_s
-          @table_name = raw_table_name.singularize.camelize
 
           field_name = node.body.children[3]&.value
           field_type = node.body.children[4]&.value
           @fields.append(DTO::Field.new(field_name, field_type))
         end
+
+        @table_name = raw_table_name.singularize.camelize
       end
 
       def process_migration_field(node)
