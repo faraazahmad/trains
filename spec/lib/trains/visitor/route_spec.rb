@@ -23,7 +23,11 @@ describe Trains::Visitor::Route do
               to: "BoxController#index",
               as: "list_boxes"
             }
-          )
+          ),
+          Trains::DTO::Route.new(method: :resources, param: :users, options: {}),
+          Trains::DTO::Route.new(method: :resources, param: :cars, options: {}),
+          Trains::DTO::Route.new(method: :resources, param: :magazines, options: {}),
+          Trains::DTO::Route.new(method: :resources, param: :ads, options: {}),
         ]
       )
     end
