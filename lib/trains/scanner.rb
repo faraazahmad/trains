@@ -55,8 +55,8 @@ module Trains
 
     def get_routes
       route_file = [File.join(@dir, 'config', 'routes.rb')]
-
       routes_results = parse_util(route_file, Visitor::Route)
+
       routes_results
         .select { |result| result.error.nil? }
         .map(&:data)

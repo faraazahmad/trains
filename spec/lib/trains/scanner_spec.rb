@@ -14,8 +14,14 @@ describe Trains::Scanner do
             name: 'ApplicationController', method_list: [], callbacks: []
           ),
           'BoxController' => Trains::DTO::Controller.new(name: 'BoxController',
-                                                       method_list: [], callbacks: [])
+                                                         method_list: [], callbacks: [])
         }
+      )
+
+      expect(result.routes).to eq(
+        Set[
+          Trains::DTO::Route.new(:get, 'boxes', { to: 'box#index' })
+        ]
       )
     end
   end

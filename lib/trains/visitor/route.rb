@@ -16,7 +16,7 @@ module Trains
         (send nil? %1 ...)
       PATTERN
 
-      ALLOWED_VERBS = %i[get put post update delete resources scope].freeze
+      ALLOWED_VERBS = %i[get put post update delete resources].freeze
 
       def initialize
         @route_list = []
@@ -28,15 +28,15 @@ module Trains
 
       def on_block(node)
         return unless route_parent?(node)
-        return if node.body.nil?
 
-        node.body.each_child_node do |child|
+        node.each_descendant(:send) do |child|
           ALLOWED_VERBS.each do |verb|
             if route_method?(child, verb)
               @route_list << parse_route(child, verb)
             end
           end
         end
+
       end
 
       private
