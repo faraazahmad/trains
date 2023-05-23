@@ -1,10 +1,10 @@
-require "yaml"
+require 'yaml'
 
 module Trains
   module Visitor
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
-      def_node_matcher :send_node?, "(send nil? ...)"
+      def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model
 
       def initialize
@@ -20,7 +20,7 @@ module Trains
       end
 
       def on_class(node)
-        unless node.parent_class.source.include? "ActiveRecord::Migration"
+        unless node.parent_class.source.include? 'ActiveRecord::Migration'
           return
         end
 
@@ -63,49 +63,51 @@ module Trains
           add_column
           remove_column
           change_column
+          add_index
         ]
-        block_type_modifier = false
+        column_modifiers = %i[
+          add_column
+          change_column
+          remove_column
+        ]
 
         method_name = node.method_name
         return unless allowed_method_names.include? method_name
         return if node.body.nil?
 
         table_modifier =
-          if node.body.children[0] == nil
-            block_type_modifier = false
-            # if table modifier is a one-liner method call
+          # if table modifier is a one-liner method call
+          if node.body.children[0].nil?
             node.body.children[1]
           elsif node.body.children[0].block_type?
-            block_type_modifier = true
             # if table modifier is in a block
+            node.body.children[0].method_name
+          elsif node.body.children[0].send_type?
             node.body.children[0].method_name
           end
         return unless allowed_table_modifiers.include? table_modifier
 
         @table_modifier = table_modifier
 
-        # Get the name of the table being modified
-        if block_type_modifier
-          raw_table_name =
-            node.body.children[0].children[0].children[2].value.to_s
-          @table_name = raw_table_name.singularize.camelize
+        node.each_descendant(:send) do |send_node|
+          if allowed_table_modifiers.include?(send_node.method_name)
+            raw_table_name = send_node.arguments[0]
+            @table_name = raw_table_name.value.to_s.singularize.camelize
+            if column_modifiers.include?(send_node.method_name)
+              @fields.append(DTO::Field.new(send_node.arguments[1].value,
+                                            send_node.arguments[2]&.value))
+            end
 
-          node.body.children[0].children[2].each_child_node do |child|
-            process_migration_field(child)
+            next
           end
-        else
-          raw_table_name = node.body.children[2].value.to_s
-          @table_name = raw_table_name.singularize.camelize
 
-          field_name = node.body.children[3]&.value
-          field_type = node.body.children[4]&.value
-          @fields.append(DTO::Field.new(field_name, field_type))
+          next if allowed_table_modifiers.include?(send_node.method_name)
+
+          parse_migration_field(send_node)
         end
       end
 
-      def process_migration_field(node)
-        return unless node.send_type?
-
+      def parse_migration_field(node)
         if node.children[1] == :timestamps
           @fields.append(DTO::Field.new(:created_at, :datetime))
           @fields.append(DTO::Field.new(:updated_at, :datetime))
