@@ -121,36 +121,6 @@ module Trains
           elsif ddl_node.send_type?
             migrations = [*migrations, *parse_one_liner_migration(ddl_node)]
           end
-
-          # next unless ALLOWED_TABLE_MODIFIERS.include?(ddl_node.method_name)
-
-          # table_name = ddl_node.arguments[0].value.to_s.singularize.camelize
-          # if ALLOWED_TABLE_MODIFIERS.include?(send_node.method_name)
-          #   raw_table_name = send_node.arguments[0]
-          #   @table_name = raw_table_name.value.to_s.singularize.camelize
-          #   if COLUMN_MODIFIERS.include?(send_node.method_name)
-          #     @result.append(
-          #       DTO::Migration.new(
-          #         @table_name,
-          #         send_node.method_name,
-          #         [
-          #           DTO::Field.new(send_node.arguments[1].value,
-          #                          send_node.arguments[2]&.value)
-          #         ],
-          #         @migration_version
-          #       )
-          #     )
-          #   end
-          #
-          #   next
-          # end
-          #
-          # next if ALLOWED_TABLE_MODIFIERS.include?(send_node.method_name)
-          #
-
-          # ddl_node.each_descendant(:send) do |send_node|
-          #   fields = [*fields, *parse_migration_field(send_node)]
-          # end
         end
 
         migrations
