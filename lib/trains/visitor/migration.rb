@@ -5,18 +5,26 @@ module Trains
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
       def_node_matcher :send_node?, '(send nil? ...)'
-      attr_reader :is_migration, :model
+      attr_reader :is_migration, :model, :result
 
+      ALLOWED_METHOD_NAMES = %i[change up down].freeze
+      ALLOWED_TABLE_MODIFIERS = %i[
+        create_table
+        change_table
+        update_column
+        add_index
+      ].freeze
+      COLUMN_MODIFIERS = %i[
+        add_column
+        change_column
+        remove_column
+      ].freeze
+
+      # skipcq: RB-LI1087
       def initialize
-        @model = nil
-        @table_modifier = nil
-        @table_name = nil
-        @is_class = false
-        @is_migration = false
-        @class_name = nil
-        @fields = []
-
-        @scope = { class: nil, method: nil, send: nil }
+        @result = []
+        @migration_class = nil
+        @migration_version = nil
       end
 
       def on_class(node)
@@ -27,16 +35,7 @@ module Trains
         @migration_class = node.children.first.source
         @migration_version = extract_version(node.parent_class.source)
 
-        process_node(node.body)
-      end
-
-      def result
-        DTO::Migration.new(
-          table_name: @table_name,
-          modifier: @table_modifier,
-          fields: @fields,
-          version: @migration_version
-        )
+        process_def_node(node.body)
       end
 
       private
@@ -48,75 +47,94 @@ module Trains
         match.to_s.to_f
       end
 
-      def process_node(node)
+      def process_def_node(node)
         return unless node.def_type?
 
-        process_def_node(node)
-      end
-
-      def process_def_node(node)
-        allowed_method_names = %i[change up down]
-        allowed_table_modifiers = %i[
-          create_table
-          change_table
-          update_column
-          add_column
-          remove_column
-          change_column
-          add_index
-        ]
-        column_modifiers = %i[
-          add_column
-          change_column
-          remove_column
-        ]
-
         method_name = node.method_name
-        return unless allowed_method_names.include? method_name
+        unless ALLOWED_METHOD_NAMES.include?(method_name) || COLUMN_MODIFIERS.include?(method_name)
+          return
+        end
         return if node.body.nil?
 
-        table_modifier =
-          # if table modifier is a one-liner method call
-          if node.body.children[0].nil?
-            node.body.children[1]
-          elsif node.body.children[0].block_type?
-            # if table modifier is in a block
-            node.body.children[0].method_name
-          elsif node.body.children[0].send_type?
-            node.body.children[0].method_name
+        case node.body.type
+        when :send
+          @result << parse_one_liner_migration(node.body)
+        when :begin
+          if node.body.children.map(&:type).include?(:block)
+            migration = parse_block_migration(node)
+            @result = [*@result, *migration] if migration
+          else
+            node.body.each_descendant(:send) do |send_node|
+              migration = parse_one_liner_migration(send_node)
+              @result << migration if migration
+            end
           end
-        return unless allowed_table_modifiers.include? table_modifier
+        when :block
+          @result = [*@result, *parse_block_migration(node)]
+        else
+          LOGGER.debug(node)
+        end
+      end
 
-        @table_modifier = table_modifier
+      def parse_one_liner_migration(node)
+        return unless COLUMN_MODIFIERS.include?(node.method_name)
 
-        node.each_descendant(:send) do |send_node|
-          if allowed_table_modifiers.include?(send_node.method_name)
-            raw_table_name = send_node.arguments[0]
-            @table_name = raw_table_name.value.to_s.singularize.camelize
-            if column_modifiers.include?(send_node.method_name)
-              @fields.append(DTO::Field.new(send_node.arguments[1].value,
-                                            send_node.arguments[2]&.value))
+        arguments = node.arguments
+        table_name = arguments[0].value.to_s.singularize.camelize
+        column_name = arguments[1].value
+        type = arguments[2].value unless node.method_name == :remove_column
+
+        DTO::Migration.new(
+          table_name,
+          node.method_name,
+          [DTO::Field.new(column_name, type)],
+          @migration_version
+        )
+      end
+
+      def parse_block_migration(node)
+        migrations = []
+        # Visit every send_node that performs DDL tasks
+        node.each_descendant do |ddl_node|
+          fields = []
+
+          if ddl_node.block_type?
+            next unless ALLOWED_TABLE_MODIFIERS.include?(ddl_node.method_name)
+
+            table_name = ddl_node.send_node.arguments[0].value.to_s.singularize.camelize
+            ddl_node.body.each_descendant(:send) do |send_node|
+              fields = [*fields, *parse_migration_field(send_node)]
             end
 
-            next
+            migrations << DTO::Migration.new(
+              table_name,
+              ddl_node.method_name,
+              fields,
+              @migration_version
+            )
+          elsif ddl_node.send_type?
+            migrations = [*migrations, *parse_one_liner_migration(ddl_node)]
           end
-
-          next if allowed_table_modifiers.include?(send_node.method_name)
-
-          parse_migration_field(send_node)
         end
+
+        migrations
       end
 
       def parse_migration_field(node)
+        fields = []
         if node.children[1] == :timestamps
-          @fields.append(DTO::Field.new(:created_at, :datetime))
-          @fields.append(DTO::Field.new(:updated_at, :datetime))
-          return
+          fields << DTO::Field.new(:created_at, :datetime)
+          fields << DTO::Field.new(:updated_at, :datetime)
+          return fields
         end
+
+        return [] if node.arguments.nil? || node.arguments.empty?
 
         type = node.children[1]
         value = node.children[2].value unless node.children[2].hash_type?
-        @fields.append(DTO::Field.new(value, type))
+        fields << DTO::Field.new(value, type)
+
+        fields
       end
     end
   end

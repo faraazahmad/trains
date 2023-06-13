@@ -19,6 +19,10 @@ describe Trains::Visitor::Migration do
     File.expand_path "#{__FILE__}/../../../../fixtures/create_people.rb"
   end
 
+  let(:denormalize_migration) do
+    File.expand_path "#{__FILE__}/../../../../fixtures/denormalize_migration.rb"
+  end
+
   context 'Given a valid DB migration file path' do
     it 'returns an object with its metadata' do
       parser = described_class.new
@@ -30,20 +34,22 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to eq(
-        Trains::DTO::Migration.new(
-          table_name: 'Group',
-          modifier: :create_table,
-          fields: [
-            Trains::DTO::Field.new(:title, :string),
-            Trains::DTO::Field.new(:created_at, :datetime),
-            Trains::DTO::Field.new(:updated_at, :datetime)
-          ],
-          version: 7.0
-        )
+        [
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :create_table,
+            fields: [
+              Trains::DTO::Field.new(:title, :string),
+              Trains::DTO::Field.new(:created_at, :datetime),
+              Trains::DTO::Field.new(:updated_at, :datetime)
+            ],
+            version: 7.0
+          )
+        ]
       )
     end
 
-    it 'sdsd' do
+    it 'returns a valid migration' do
       parser = described_class.new
       file_ast =
         RuboCop::AST::ProcessedSource.from_file(
@@ -53,19 +59,21 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to eq(
-        Trains::DTO::Migration.new(
-          table_name: 'Person',
-          modifier: :create_table,
-          fields: [
-            Trains::DTO::Field.new(:name, :string),
-            Trains::DTO::Field.new(:age, :integer),
-            Trains::DTO::Field.new(:job, :string),
-            Trains::DTO::Field.new(:bio, :text),
-            Trains::DTO::Field.new(:created_at, :datetime),
-            Trains::DTO::Field.new(:updated_at, :datetime)
-          ],
-          version: 7.0
-        )
+        [
+          Trains::DTO::Migration.new(
+            table_name: 'Person',
+            modifier: :create_table,
+            fields: [
+              Trains::DTO::Field.new(:name, :string),
+              Trains::DTO::Field.new(:age, :integer),
+              Trains::DTO::Field.new(:job, :string),
+              Trains::DTO::Field.new(:bio, :text),
+              Trains::DTO::Field.new(:created_at, :datetime),
+              Trains::DTO::Field.new(:updated_at, :datetime)
+            ],
+            version: 7.0
+          )
+        ]
       )
     end
   end
@@ -81,17 +89,19 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to eq(
-        Trains::DTO::Migration.new(
-          table_name: 'GroupUser',
-          modifier: :create_table,
-          fields: [
-            Trains::DTO::Field.new(:group_id, :integer),
-            Trains::DTO::Field.new(:user_id, :integer),
-            Trains::DTO::Field.new(:created_at, :datetime),
-            Trains::DTO::Field.new(:updated_at, :datetime)
-          ],
-          version: 4.2
-        )
+        [
+          Trains::DTO::Migration.new(
+            table_name: 'GroupUser',
+            modifier: :create_table,
+            fields: [
+              Trains::DTO::Field.new(:group_id, :integer),
+              Trains::DTO::Field.new(:user_id, :integer),
+              Trains::DTO::Field.new(:created_at, :datetime),
+              Trains::DTO::Field.new(:updated_at, :datetime)
+            ],
+            version: 4.2
+          )
+        ]
       )
     end
   end
@@ -107,12 +117,14 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to eq(
-        Trains::DTO::Migration.new(
-          table_name: 'Post',
-          modifier: :remove_column,
-          fields: [Trains::DTO::Field.new(:reply_below_post_number, nil)],
-          version: 4.2
-        )
+        [
+          Trains::DTO::Migration.new(
+            table_name: 'Post',
+            modifier: :remove_column,
+            fields: [Trains::DTO::Field.new(:reply_below_post_number, nil)],
+            version: 4.2
+          )
+        ]
       )
     end
   end
@@ -128,13 +140,56 @@ describe Trains::Visitor::Migration do
       file_ast.each_node { |node| parser.process(node) }
 
       expect(parser.result).to eq(
-        Trains::DTO::Migration.new(
-          table_name: 'UserStat',
-          modifier: :add_column,
-          fields: [Trains::DTO::Field.new(:pending_posts_count, :integer)],
-          version: 6.1
-        )
+        [
+          Trains::DTO::Migration.new(
+            table_name: 'UserStat',
+            modifier: :add_column,
+            fields: [Trains::DTO::Field.new(:pending_posts_count, :integer)],
+            version: 6.1
+          )
+        ]
       )
+    end
+
+    context 'Given a denormalized DB migration' do
+      it 'returns an object with its metadata' do
+        parser = described_class.new
+        file_ast =
+          RuboCop::AST::ProcessedSource.from_file(
+            denormalize_migration,
+            RUBY_VERSION.to_f
+          ).ast
+        file_ast.each_node { |node| parser.process(node) }
+
+        expect(parser.result).to eq(
+          [
+            Trains::DTO::Migration.new(
+              table_name: 'Post',
+              modifier: :add_column,
+              fields: [Trains::DTO::Field.new(:expression1_count, :integer)],
+              version: 4.2
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'Post',
+              modifier: :add_column,
+              fields: [Trains::DTO::Field.new(:expression2_count, :integer)],
+              version: 4.2
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'ForumThread',
+              modifier: :add_column,
+              fields: [Trains::DTO::Field.new(:expression1_count, :integer)],
+              version: 4.2
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'ForumThread',
+              modifier: :add_column,
+              fields: [Trains::DTO::Field.new(:expression2_count, :integer)],
+              version: 4.2
+            )
+          ]
+        )
+      end
     end
   end
 end
