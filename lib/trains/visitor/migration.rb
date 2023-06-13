@@ -21,16 +21,9 @@ module Trains
       ].freeze
 
       def initialize
-        @model = nil
-        @table_modifier = nil
-        @table_name = nil
-        @is_class = false
-        @is_migration = false
-        @class_name = nil
-        @fields = []
         @result = []
-
-        @scope = { class: nil, method: nil, send: nil }
+        @migration_class = nil
+        @migration_version = nil
       end
 
       def on_class(node)
