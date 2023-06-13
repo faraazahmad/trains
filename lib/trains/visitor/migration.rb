@@ -4,19 +4,24 @@ module Trains
   module Visitor
     # Visitor that parses DB migration and associates them with Rails models
     class Migration < Base
+      include Utils::Args
+
       def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model, :result
 
       ALLOWED_METHOD_NAMES = %i[change up down].freeze
       ALLOWED_TABLE_MODIFIERS = %i[
         create_table
+        create_join_table
         change_table
+        safety_assured
         update_column
         add_index
       ].freeze
       COLUMN_MODIFIERS = %i[
         add_column
         change_column
+        add_reference
         remove_column
       ].freeze
 
@@ -72,7 +77,7 @@ module Trains
         when :block
           @result = [*@result, *parse_block_migration(node)]
         else
-          LOGGER.debug(node)
+          Utils::Logger.debug(node)
         end
       end
 
@@ -82,7 +87,13 @@ module Trains
         arguments = node.arguments
         table_name = arguments[0].value.to_s.singularize.camelize
         column_name = arguments[1].value
-        type = arguments[2].value unless node.method_name == :remove_column
+
+        if node.method_name == :add_reference
+          type = :bigint
+          column_name = "#{arguments[1].value}_id".to_sym
+        else
+          type = arguments[2].value unless node.method_name == :remove_column
+        end
 
         DTO::Migration.new(
           table_name,
@@ -101,7 +112,21 @@ module Trains
           if ddl_node.block_type?
             next unless ALLOWED_TABLE_MODIFIERS.include?(ddl_node.method_name)
 
+            if ddl_node.method_name == :safety_assured
+              ddl_node.body.each_descendant(:send) do |send_node|
+                migrations = [*migrations,
+                              *parse_one_liner_migration(send_node)]
+              end
+
+              break
+            end
+
             table_name = ddl_node.send_node.arguments[0].value.to_s.singularize.camelize
+            if ddl_node.method_name == :create_join_table
+              table_name = ddl_node.send_node.arguments[0].value.to_s.camelize +
+                           ddl_node.send_node.arguments[1].value.to_s.camelize
+            end
+
             ddl_node.body.each_descendant(:send) do |send_node|
               fields = [*fields, *parse_migration_field(send_node)]
             end
@@ -130,9 +155,23 @@ module Trains
 
         return [] if node.arguments.nil? || node.arguments.empty?
 
-        type = node.children[1]
-        value = node.children[2].value unless node.children[2].hash_type?
-        fields << DTO::Field.new(value, type)
+        unless %i[hash].include?(node.children[2].type)
+          type = node.children[1]
+
+          if node.children[2].array_type?
+            args = node.children[2].values.map do |element|
+              parse_value(element)
+            end
+
+            args.each do |arg|
+              fields << DTO::Field.new(arg, type)
+            end
+          else
+            value = node.children[2].value
+            fields << DTO::Field.new(value, type)
+          end
+
+        end
 
         fields
       end
