@@ -20,6 +20,7 @@ module Trains
         remove_column
       ].freeze
 
+      # skipcq: RB-LI1087
       def initialize
         @result = []
         @migration_class = nil
