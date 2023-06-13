@@ -71,7 +71,7 @@ module Trains
         when :block
           @result = [*@result, *parse_block_migration(node)]
         else
-          pp node
+          LOGGER.debug(node)
         end
       end
 
