@@ -36,7 +36,6 @@ module Trains
             end
           end
         end
-
       end
 
       private
@@ -48,7 +47,7 @@ module Trains
           when :sym, :str
             node.arguments[0].value
           end
-        options = parse_hash(node.arguments[1])
+        options = parse_args(node.arguments[1])
         DTO::Route.new(method:, param:, options:)
       end
     end

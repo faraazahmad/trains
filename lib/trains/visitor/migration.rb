@@ -9,7 +9,7 @@ module Trains
       def_node_matcher :send_node?, '(send nil? ...)'
       attr_reader :is_migration, :model, :result
 
-      ALLOWED_METHOD_NAMES = %i[change up down].freeze
+      ALLOWED_METHOD_NAMES = %i[change up].freeze
       ALLOWED_TABLE_MODIFIERS = %i[
         create_table
         create_join_table
@@ -22,7 +22,6 @@ module Trains
         change_column
         add_reference
         remove_column
-        add_index
       ].freeze
 
       # skipcq: RB-LI1087
@@ -40,7 +39,7 @@ module Trains
         @migration_class = node.children.first.source
         @migration_version = extract_version(node.parent_class.source)
 
-        node.each_child_node(:def) do |child_node|
+        node.each_descendant(:def) do |child_node|
           next if child_node.body.nil?
           next unless ALLOWED_METHOD_NAMES.include?(child_node.method_name)
 
@@ -73,8 +72,11 @@ module Trains
           end
         when :block
           @result = [*@result, *parse_block_migration(node)]
+        when :if, :until
+          puts "Using unsupported logic within Rails migration: #{node.body.type}"
         else
-          raise StandardError('Node type not found')
+          puts "[process_migration]: Unable to parse the following node:"
+          pp node
         end
       end
 

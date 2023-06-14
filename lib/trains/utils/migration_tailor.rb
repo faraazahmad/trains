@@ -13,7 +13,7 @@ module Trains
               fields: mig.fields,
               version: mig.version
             )
-          when :add_column
+          when :add_column, :add_reference
             models[mig.table_name].fields.push(*mig.fields)
           when :remove_column
             column =

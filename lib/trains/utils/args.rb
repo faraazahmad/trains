@@ -5,6 +5,8 @@ module Trains
     # utility module to deal with parsing of arguments
     module Args
       def parse_args(node)
+        return if node.nil?
+
         case node.type
         when :hash
           parse_hash(node)
@@ -19,6 +21,7 @@ module Trains
 
         node.each_pair { |key, value| options[key.value] = parse_value(value) }
       rescue StandardError => e
+        puts "Error boi"
         puts node.parent
       ensure
         return options

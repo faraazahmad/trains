@@ -213,6 +213,14 @@ describe Trains::Visitor::Migration do
                 Trains::DTO::Field.new(:parent_id, :bigint)
               ],
               version: 5.1
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'User',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:role_id, :bigint)
+              ],
+              version: 5.1
             )
           ]
         )
