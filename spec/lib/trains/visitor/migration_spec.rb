@@ -47,6 +47,7 @@ describe Trains::Visitor::Migration do
             table_name: 'Group',
             modifier: :create_table,
             fields: [
+              Trains::DTO::Field.new(:id, :bigint),
               Trains::DTO::Field.new(:title, :string),
               Trains::DTO::Field.new(:created_at, :datetime),
               Trains::DTO::Field.new(:updated_at, :datetime)
@@ -72,6 +73,7 @@ describe Trains::Visitor::Migration do
             table_name: 'Person',
             modifier: :create_table,
             fields: [
+              Trains::DTO::Field.new(:id, :bigint),
               Trains::DTO::Field.new(:name, :string),
               Trains::DTO::Field.new(:age, :integer),
               Trains::DTO::Field.new(:job, :string),
@@ -102,8 +104,11 @@ describe Trains::Visitor::Migration do
             table_name: 'GroupUser',
             modifier: :create_table,
             fields: [
+              Trains::DTO::Field.new(:id, :bigint),
               Trains::DTO::Field.new(:group_id, :integer),
               Trains::DTO::Field.new(:user_id, :integer),
+              Trains::DTO::Field.new(:car_id, :bigint),
+              Trains::DTO::Field.new(:person_id, :bigint),
               Trains::DTO::Field.new(:created_at, :datetime),
               Trains::DTO::Field.new(:updated_at, :datetime)
             ],
@@ -194,6 +199,14 @@ describe Trains::Visitor::Migration do
                 Trains::DTO::Field.new(:juice_id, :bigint),
               ],
               version: 5.1
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'EmailDomainBlocks',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:parent_id, :bigint),
+              ],
+              version: 5.1
             )
           ]
         )
@@ -216,12 +229,12 @@ describe Trains::Visitor::Migration do
               table_name: 'StatusesTags',
               modifier: :create_join_table,
               fields: [
+                Trains::DTO::Field.new(:status_id, :bigint),
+                Trains::DTO::Field.new(:tag_id, :bigint),
                 Trains::DTO::Field.new(:job, :string),
                 Trains::DTO::Field.new(:bio, :text),
                 Trains::DTO::Field.new(:created_at, :datetime),
                 Trains::DTO::Field.new(:updated_at, :datetime),
-                Trains::DTO::Field.new(:tag_id, :index),
-                Trains::DTO::Field.new(:status_id, :index),
               ],
               version: 7.0
             )

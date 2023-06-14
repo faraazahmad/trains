@@ -16,7 +16,6 @@ module Trains
         change_table
         safety_assured
         update_column
-        add_index
       ].freeze
       COLUMN_MODIFIERS = %i[
         add_column
@@ -122,9 +121,17 @@ module Trains
             end
 
             table_name = ddl_node.send_node.arguments[0].value.to_s.singularize.camelize
-            if ddl_node.method_name == :create_join_table
-              table_name = ddl_node.send_node.arguments[0].value.to_s.camelize +
-                           ddl_node.send_node.arguments[1].value.to_s.camelize
+            case ddl_node.method_name
+            when :create_join_table
+              field_one = ddl_node.send_node.arguments[0].value.to_s
+              field_two = ddl_node.send_node.arguments[1].value.to_s
+
+              table_name = field_one.camelize + field_two.camelize
+
+              fields << DTO::Field.new("#{field_one.singularize}_id".to_sym, :bigint)
+              fields << DTO::Field.new("#{field_two.singularize}_id".to_sym, :bigint)
+            when :create_table
+              fields << DTO::Field.new(:id, :bigint)
             end
 
             ddl_node.body.each_descendant(:send) do |send_node|
@@ -147,6 +154,7 @@ module Trains
 
       def parse_migration_field(node)
         fields = []
+        # t.timestamps
         if node.children[1] == :timestamps
           fields << DTO::Field.new(:created_at, :datetime)
           fields << DTO::Field.new(:updated_at, :datetime)
@@ -155,22 +163,26 @@ module Trains
 
         return [] if node.arguments.nil? || node.arguments.empty?
 
-        unless %i[hash].include?(node.children[2].type)
+        # method used to create the column
+        # string is the col_method in t.string
+        col_method = node.children[1]
+        case col_method
+        when :column
+          # t.column col_name, col_type
+          type = node.children[3].value
+          value = node.children[2].value
+          fields << DTO::Field.new(value, type)
+        when :references, :belongs_to
+          # t.references
+          type = :bigint
+          value = "#{node.children[2].value}_id".to_sym
+          fields << DTO::Field.new(value, type)
+        when :index
+        else
+          # t.string, t.integer etc.
           type = node.children[1]
-
-          if node.children[2].array_type?
-            args = node.children[2].values.map do |element|
-              parse_value(element)
-            end
-
-            args.each do |arg|
-              fields << DTO::Field.new(arg, type)
-            end
-          else
-            value = node.children[2].value
-            fields << DTO::Field.new(value, type)
-          end
-
+          value = parse_args(node.children[2])
+          fields << DTO::Field.new(value, type)
         end
 
         fields
