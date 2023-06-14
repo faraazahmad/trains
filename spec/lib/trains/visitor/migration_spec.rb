@@ -53,6 +53,12 @@ describe Trains::Visitor::Migration do
               Trains::DTO::Field.new(:updated_at, :datetime)
             ],
             version: 7.0
+          ),
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :add_column,
+            fields: [Trains::DTO::Field.new(:name, :string)],
+            version: 7.0
           )
         ]
       )
@@ -180,7 +186,7 @@ describe Trains::Visitor::Migration do
               table_name: 'WebPushSubscription',
               modifier: :add_reference,
               fields: [
-                Trains::DTO::Field.new(:parent_id, :bigint),
+                Trains::DTO::Field.new(:parent_id, :bigint)
               ],
               version: 5.1
             ),
@@ -188,7 +194,7 @@ describe Trains::Visitor::Migration do
               table_name: 'WebPushSubscription',
               modifier: :add_reference,
               fields: [
-                Trains::DTO::Field.new(:car_id, :bigint),
+                Trains::DTO::Field.new(:car_id, :bigint)
               ],
               version: 5.1
             ),
@@ -196,15 +202,15 @@ describe Trains::Visitor::Migration do
               table_name: 'WebPushSubscription',
               modifier: :add_reference,
               fields: [
-                Trains::DTO::Field.new(:juice_id, :bigint),
+                Trains::DTO::Field.new(:juice_id, :bigint)
               ],
               version: 5.1
             ),
             Trains::DTO::Migration.new(
-              table_name: 'EmailDomainBlocks',
+              table_name: 'EmailDomainBlock',
               modifier: :add_reference,
               fields: [
-                Trains::DTO::Field.new(:parent_id, :bigint),
+                Trains::DTO::Field.new(:parent_id, :bigint)
               ],
               version: 5.1
             )
@@ -234,7 +240,7 @@ describe Trains::Visitor::Migration do
                 Trains::DTO::Field.new(:job, :string),
                 Trains::DTO::Field.new(:bio, :text),
                 Trains::DTO::Field.new(:created_at, :datetime),
-                Trains::DTO::Field.new(:updated_at, :datetime),
+                Trains::DTO::Field.new(:updated_at, :datetime)
               ],
               version: 7.0
             )

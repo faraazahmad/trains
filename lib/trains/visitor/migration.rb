@@ -22,6 +22,7 @@ module Trains
         change_column
         add_reference
         remove_column
+        add_index
       ].freeze
 
       # skipcq: RB-LI1087
@@ -39,7 +40,12 @@ module Trains
         @migration_class = node.children.first.source
         @migration_version = extract_version(node.parent_class.source)
 
-        process_def_node(node.body)
+        node.each_child_node(:def) do |child_node|
+          next if child_node.body.nil?
+          next unless ALLOWED_METHOD_NAMES.include?(child_node.method_name)
+
+          process_migration(child_node)
+        end
       end
 
       private
@@ -51,21 +57,13 @@ module Trains
         match.to_s.to_f
       end
 
-      def process_def_node(node)
-        return unless node.def_type?
-
-        method_name = node.method_name
-        unless ALLOWED_METHOD_NAMES.include?(method_name) || COLUMN_MODIFIERS.include?(method_name)
-          return
-        end
-        return if node.body.nil?
-
+      def process_migration(node)
         case node.body.type
         when :send
           @result << parse_one_liner_migration(node.body)
         when :begin
           if node.body.children.map(&:type).include?(:block)
-            migration = parse_block_migration(node)
+            migration = parse_block_migration(node.body)
             @result = [*@result, *migration] if migration
           else
             node.body.each_descendant(:send) do |send_node|
@@ -76,7 +74,7 @@ module Trains
         when :block
           @result = [*@result, *parse_block_migration(node)]
         else
-          Utils::Logger.debug(node)
+          raise StandardError('Node type not found')
         end
       end
 
@@ -105,19 +103,20 @@ module Trains
       def parse_block_migration(node)
         migrations = []
         # Visit every send_node that performs DDL tasks
-        node.each_descendant do |ddl_node|
-          fields = []
+        node.children.each do |ddl_node|
+          next if ddl_node.is_a?(Symbol)
 
-          if ddl_node.block_type?
+          fields = []
+          if ddl_node.is_a?(RuboCop::AST::BlockNode)
             next unless ALLOWED_TABLE_MODIFIERS.include?(ddl_node.method_name)
 
             if ddl_node.method_name == :safety_assured
-              ddl_node.body.each_descendant(:send) do |send_node|
+              ddl_node.each_descendant(:send) do |send_node|
                 migrations = [*migrations,
                               *parse_one_liner_migration(send_node)]
               end
 
-              break
+              next
             end
 
             table_name = ddl_node.send_node.arguments[0].value.to_s.singularize.camelize
@@ -128,8 +127,10 @@ module Trains
 
               table_name = field_one.camelize + field_two.camelize
 
-              fields << DTO::Field.new("#{field_one.singularize}_id".to_sym, :bigint)
-              fields << DTO::Field.new("#{field_two.singularize}_id".to_sym, :bigint)
+              fields << DTO::Field.new("#{field_one.singularize}_id".to_sym,
+                                       :bigint)
+              fields << DTO::Field.new("#{field_two.singularize}_id".to_sym,
+                                       :bigint)
             when :create_table
               fields << DTO::Field.new(:id, :bigint)
             end
@@ -144,7 +145,7 @@ module Trains
               fields,
               @migration_version
             )
-          elsif ddl_node.send_type?
+          elsif ddl_node.is_a?(RuboCop::AST::SendNode)
             migrations = [*migrations, *parse_one_liner_migration(ddl_node)]
           end
         end
