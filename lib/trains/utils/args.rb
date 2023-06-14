@@ -42,7 +42,7 @@ module Trains
           true
         when :false
           false
-        when :symbol, :string
+        when :sym, :str, :integer
           node.value
         end
       end
