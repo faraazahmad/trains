@@ -21,7 +21,7 @@ module Trains
 
         node.each_pair { |key, value| options[key.value] = parse_value(value) }
       rescue StandardError => e
-        puts "Error boi"
+        puts 'Error boi'
         puts e
         puts node.parent
       ensure
@@ -38,8 +38,10 @@ module Trains
           if node.method_name == :redirect
             { redirect: node.arguments.first.value }
           end
+        # skipcq: RB-LI1006
         when :true
           true
+        # skipcq: RB-LI1006
         when :false
           false
         when :sym, :str, :integer

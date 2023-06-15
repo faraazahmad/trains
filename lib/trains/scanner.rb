@@ -50,7 +50,6 @@ module Trains
       return get_models if File.exist?(File.join(@dir, 'db', 'schema.rb'))
 
       migrations = get_migrations.flatten.reject(&:nil?)
-      # pp migrations
       Utils::MigrationTailor.stitch(migrations)
     end
 

@@ -76,6 +76,7 @@ module Trains
           puts "Using unsupported logic within Rails migration: #{node.body.type}"
         else
           puts "[process_migration]: Unable to parse the following node:"
+          # skipcq: RB-RB-LI1008
           pp node
         end
       end
