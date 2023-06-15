@@ -23,6 +23,14 @@ describe Trains::Visitor::Migration do
     File.expand_path "#{__FILE__}/../../../../fixtures/denormalize_migration.rb"
   end
 
+  let(:create_join_migrations) do
+    File.expand_path "#{__FILE__}/../../../../fixtures/create_join_table.rb"
+  end
+
+  let(:safety_assured) do
+    File.expand_path "#{__FILE__}/../../../../fixtures/safety_assured.rb"
+  end
+
   context 'Given a valid DB migration file path' do
     it 'returns an object with its metadata' do
       parser = described_class.new
@@ -39,10 +47,17 @@ describe Trains::Visitor::Migration do
             table_name: 'Group',
             modifier: :create_table,
             fields: [
+              Trains::DTO::Field.new(:id, :bigint),
               Trains::DTO::Field.new(:title, :string),
               Trains::DTO::Field.new(:created_at, :datetime),
               Trains::DTO::Field.new(:updated_at, :datetime)
             ],
+            version: 7.0
+          ),
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :add_column,
+            fields: [Trains::DTO::Field.new(:name, :string)],
             version: 7.0
           )
         ]
@@ -64,6 +79,7 @@ describe Trains::Visitor::Migration do
             table_name: 'Person',
             modifier: :create_table,
             fields: [
+              Trains::DTO::Field.new(:id, :bigint),
               Trains::DTO::Field.new(:name, :string),
               Trains::DTO::Field.new(:age, :integer),
               Trains::DTO::Field.new(:job, :string),
@@ -94,8 +110,11 @@ describe Trains::Visitor::Migration do
             table_name: 'GroupUser',
             modifier: :create_table,
             fields: [
+              Trains::DTO::Field.new(:id, :bigint),
               Trains::DTO::Field.new(:group_id, :integer),
               Trains::DTO::Field.new(:user_id, :integer),
+              Trains::DTO::Field.new(:car_id, :bigint),
+              Trains::DTO::Field.new(:person_id, :bigint),
               Trains::DTO::Field.new(:created_at, :datetime),
               Trains::DTO::Field.new(:updated_at, :datetime)
             ],
@@ -149,6 +168,93 @@ describe Trains::Visitor::Migration do
           )
         ]
       )
+    end
+
+    context 'Given a DB migration within safety_assured' do
+      it 'creates a table with their names combined' do
+        parser = described_class.new
+        file_ast =
+          RuboCop::AST::ProcessedSource.from_file(
+            safety_assured,
+            RUBY_VERSION.to_f
+          ).ast
+        file_ast.each_node { |node| parser.process(node) }
+
+        expect(parser.result).to eq(
+          [
+            Trains::DTO::Migration.new(
+              table_name: 'WebPushSubscription',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:parent_id, :bigint)
+              ],
+              version: 5.1
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'WebPushSubscription',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:car_id, :bigint)
+              ],
+              version: 5.1
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'WebPushSubscription',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:juice_id, :bigint)
+              ],
+              version: 5.1
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'EmailDomainBlock',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:parent_id, :bigint)
+              ],
+              version: 5.1
+            ),
+            Trains::DTO::Migration.new(
+              table_name: 'User',
+              modifier: :add_reference,
+              fields: [
+                Trains::DTO::Field.new(:role_id, :bigint)
+              ],
+              version: 5.1
+            )
+          ]
+        )
+      end
+    end
+
+    context 'Given a create_join_table migration' do
+      it 'creates a table with their names combined' do
+        parser = described_class.new
+        file_ast =
+          RuboCop::AST::ProcessedSource.from_file(
+            create_join_migrations,
+            RUBY_VERSION.to_f
+          ).ast
+        file_ast.each_node { |node| parser.process(node) }
+
+        expect(parser.result).to eq(
+          [
+            Trains::DTO::Migration.new(
+              table_name: 'StatusesTags',
+              modifier: :create_join_table,
+              fields: [
+                Trains::DTO::Field.new(:status_id, :bigint),
+                Trains::DTO::Field.new(:tag_id, :bigint),
+                Trains::DTO::Field.new(:job, :string),
+                Trains::DTO::Field.new(:bio, :text),
+                Trains::DTO::Field.new(:created_at, :datetime),
+                Trains::DTO::Field.new(:updated_at, :datetime)
+              ],
+              version: 7.0
+            )
+          ]
+        )
+      end
     end
 
     context 'Given a denormalized DB migration' do

@@ -5,6 +5,8 @@ module Trains
     # utility module to deal with parsing of arguments
     module Args
       def parse_args(node)
+        return if node.nil?
+
         case node.type
         when :hash
           parse_hash(node)
@@ -19,6 +21,8 @@ module Trains
 
         node.each_pair { |key, value| options[key.value] = parse_value(value) }
       rescue StandardError => e
+        puts 'Error boi'
+        puts e
         puts node.parent
       ensure
         return options
@@ -34,7 +38,13 @@ module Trains
           if node.method_name == :redirect
             { redirect: node.arguments.first.value }
           end
-        else
+        # skipcq: RB-LI1006
+        when :true
+          true
+        # skipcq: RB-LI1006
+        when :false
+          false
+        when :sym, :str, :integer
           node.value
         end
       end

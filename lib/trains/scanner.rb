@@ -49,7 +49,7 @@ module Trains
     def generate_models
       return get_models if File.exist?(File.join(@dir, 'db', 'schema.rb'))
 
-      migrations = get_migrations
+      migrations = get_migrations.flatten.reject(&:nil?)
       Utils::MigrationTailor.stitch(migrations)
     end
 

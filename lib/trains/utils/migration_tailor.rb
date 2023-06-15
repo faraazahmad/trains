@@ -6,14 +6,14 @@ module Trains
 
         migrations.each do |mig|
           case mig.modifier
-          when :create_table
+          when :create_table, :create_join_table
             models[mig.table_name] = {}
             models[mig.table_name] = Trains::DTO::Model.new(
               name: mig.table_name,
               fields: mig.fields,
               version: mig.version
             )
-          when :add_column
+          when :add_column, :add_reference
             models[mig.table_name].fields.push(*mig.fields)
           when :remove_column
             column =
@@ -34,6 +34,9 @@ module Trains
 
             models[mig.table_name].fields << mig.fields.first
           end
+
+        rescue NoMethodError
+          next
         end
 
         models
