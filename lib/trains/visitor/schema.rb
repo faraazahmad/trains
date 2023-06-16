@@ -76,6 +76,11 @@ module Trains
           @table_name = table.send_node.first_argument.value
           @columns = build_columns(table)
 
+          @columns << DTO::Field.new(
+            name: :id,
+            type: :bigint
+          )
+
           @models << DTO::Model.new(
             name: @table_name.singularize.camelize,
             fields: @columns,
