@@ -44,12 +44,10 @@ module Trains
 
     private
 
-    # Generate models from either db/schema.rb
-    # else stitch together migrations to create models
+    # Stitch together migrations to create models
     def generate_models
-      return get_models if File.exist?(File.join(@dir, 'db', 'schema.rb'))
-
       migrations = get_migrations.flatten.reject(&:nil?)
+      migrations = [*migrations, *parse_models.flatten.reject(&:nil?)]
       Utils::MigrationTailor.stitch(migrations)
     end
 
@@ -63,7 +61,7 @@ module Trains
         .flatten
     end
 
-    def get_models
+    def parse_schema
       result_hash = {}
       schema_file = [File.join(@dir, 'db', 'schema.rb')]
       models_results = parse_util(schema_file, Visitor::Schema)
@@ -75,6 +73,15 @@ module Trains
         .each { |model| result_hash[model.name] = model }
 
       result_hash
+    end
+
+    def parse_models
+      models = Dir.glob(File.join(@dir, 'app', 'models', '**', '*.rb'))
+      model_results = parse_util(models, Visitor::Model)
+
+      model_results
+        .select { |result| result.error.nil? }
+        .map(&:data)
     end
 
     def get_helpers; end
