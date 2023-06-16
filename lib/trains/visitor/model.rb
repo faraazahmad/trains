@@ -12,6 +12,7 @@ module Trains
       ]
       attr_reader :result
 
+      # skipcq: RB-LI1087
       def initialize
         @result = []
       end
