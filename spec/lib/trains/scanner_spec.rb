@@ -18,6 +18,23 @@ describe Trains::Scanner do
         }
       )
 
+      expect(result.models['Person']).to eq(
+        Trains::DTO::Model.new(
+          'Person',
+          [
+            Trains::DTO::Field.new(:id, :bigint),
+            Trains::DTO::Field.new(:name, :string),
+            Trains::DTO::Field.new(:age, :integer),
+            Trains::DTO::Field.new(:job, :string),
+            Trains::DTO::Field.new(:bio, :text),
+            Trains::DTO::Field.new(:created_at, :datetime),
+            Trains::DTO::Field.new(:updated_at, :datetime),
+            Trains::DTO::Field.new(:cars, :bigint)
+          ],
+          7.0
+        )
+      )
+
       expect(result.routes).to eq(
         Set[
           Trains::DTO::Route.new(:get, 'boxes', { to: 'box#index' })
