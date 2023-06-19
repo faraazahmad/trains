@@ -1,15 +1,18 @@
 describe Trains::Visitor::Controller do
-  let(:valid_controller) do
+  let(:box_controller) do
     File.expand_path "#{__FILE__}/../../../../fixtures/box_controller.rb"
+  end
+
+  let(:health_controller) do
+    File.expand_path "#{__FILE__}/../../../../fixtures/health_controller.rb"
   end
 
   context 'Given a valid controller file path' do
     it 'returns an object with its metadata' do
-      puts Dir.pwd
       parser = described_class.new
       file_ast =
         RuboCop::AST::ProcessedSource.from_file(
-          valid_controller,
+          box_controller,
           RUBY_VERSION.to_f
         ).ast
       file_ast.each_node { |node| parser.process(node) }
@@ -29,6 +32,24 @@ describe Trains::Visitor::Controller do
                                       except: :index
                                     }])
         ]
+      )
+    end
+
+    it 'returns an object with its metadata' do
+      parser = described_class.new
+      file_ast =
+        RuboCop::AST::ProcessedSource.from_file(
+          health_controller,
+          RUBY_VERSION.to_f
+        ).ast
+      file_ast.each_node { |node| parser.process(node) }
+
+      expect(parser.result).to have_attributes(
+        name: 'HealthController',
+        method_list: [
+          Trains::DTO::Method.new(name: 'show')
+        ],
+        callbacks: []
       )
     end
   end
