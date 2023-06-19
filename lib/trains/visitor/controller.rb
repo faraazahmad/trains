@@ -28,11 +28,11 @@ module Trains
 
         @class_name = class_name
         find_callbacks(node)
-        parse_body(node.body) unless node.body.nil?
+        parse_body(node) unless node.body.nil?
       end
 
       def result
-        DTO::Controller.new(name: @class_name, method_list: @method_list.uniq, callbacks: @callbacks)
+        DTO::Controller.new(name: @class_name, method_list: @method_list, callbacks: @callbacks)
       end
 
       private
@@ -47,8 +47,8 @@ module Trains
       end
 
       def parse_body(body)
-        body.each_child_node do |child|
-          @method_list << parse_method(child) if child.type == :def
+        body.each_descendant(:def) do |child|
+          @method_list << parse_method(child)
         end
       end
 
@@ -57,7 +57,7 @@ module Trains
       end
 
       def parse_method(node)
-        DTO::Method.new(name: node.method_name.to_s)
+        DTO::Method.new(node.method_name.to_s)
       end
     end
   end

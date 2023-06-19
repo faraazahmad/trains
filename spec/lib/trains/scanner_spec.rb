@@ -13,8 +13,11 @@ describe Trains::Scanner do
           'ApplicationController' => Trains::DTO::Controller.new(
             name: 'ApplicationController', method_list: [], callbacks: []
           ),
-          'BoxController' => Trains::DTO::Controller.new(name: 'BoxController',
-                                                         method_list: [], callbacks: [])
+          'BoxController' => Trains::DTO::Controller.new(
+            name: 'BoxController',
+            method_list: [Trains::DTO::Method.new('index')],
+            callbacks: []
+          )
         }
       )
 
