@@ -19,6 +19,7 @@ module Trains
       ].freeze
       COLUMN_MODIFIERS = %i[
         add_column
+        add_column_with_default
         change_column
         add_reference
         remove_column
