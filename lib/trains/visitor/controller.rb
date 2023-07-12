@@ -53,7 +53,7 @@ module Trains
       end
 
       def controller?(parent_class)
-        %w[ActionController::Base ApplicationController].include? parent_class
+        parent_class.include? 'Controller'
       end
 
       def parse_method(node)
