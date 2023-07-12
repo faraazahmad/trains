@@ -2,6 +2,17 @@
 
 describe Trains::Utils::MigrationTailor do
   context 'when migrations create_table, add_column' do
+    let(:models_from_schema) do
+      {
+        'Post' => Trains::DTO::Model.new(
+          name: 'Post',
+          fields: [
+            Trains::DTO::Field.new(:name, :string),
+          ],
+          version: 6.3
+        )
+      }
+    end
     let(:create_add_migs) do
       [
         Trains::DTO::Migration.new(
@@ -25,18 +36,19 @@ describe Trains::Utils::MigrationTailor do
     end
 
     it 'creates a model and adds a column to it' do
-      models = Trains::Utils::MigrationTailor.stitch(create_add_migs)
+      models = Trains::Utils::MigrationTailor.stitch(models_from_schema, create_add_migs)
       expect(models).to eq(
         {
           'Post' =>
         Trains::DTO::Model.new(
           name: 'Post',
           fields: [
+            Trains::DTO::Field.new(:name, :string),
             Trains::DTO::Field.new(:title, :string),
             Trains::DTO::Field.new(:more, :text),
             Trains::DTO::Field.new(:user_name, :string)
           ],
-          version: 5.2
+          version: 6.3
         )
         }
       )

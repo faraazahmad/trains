@@ -1,18 +1,19 @@
 module Trains
   module Utils
     module MigrationTailor
-      def self.stitch(migrations)
-        models = {}
-
+      def self.stitch(models = {}, migrations)
         migrations.each do |mig|
           case mig.modifier
           when :create_table, :create_join_table
-            models[mig.table_name] = {}
-            models[mig.table_name] = Trains::DTO::Model.new(
-              name: mig.table_name,
-              fields: mig.fields,
-              version: mig.version
-            )
+            if models.key?(mig.table_name)
+              models[mig.table_name].fields.push(*mig.fields)
+            else
+              models[mig.table_name] = Trains::DTO::Model.new(
+                name: mig.table_name,
+                fields: mig.fields,
+                version: mig.version
+              )
+            end
           when :add_column, :add_column_with_default, :add_reference
             models[mig.table_name].fields.push(*mig.fields)
           when :remove_column
