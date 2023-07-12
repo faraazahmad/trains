@@ -46,9 +46,12 @@ module Trains
 
     # Stitch together migrations to create models
     def generate_models
+      # Parse models from schema.rb (used when brownfield project)
+      schema_models = parse_schema
+
       migrations = get_migrations.flatten.reject(&:nil?)
       migrations = [*migrations, *parse_models.flatten.reject(&:nil?)]
-      Utils::MigrationTailor.stitch(migrations)
+      Utils::MigrationTailor.stitch(schema_models, migrations)
     end
 
     def get_routes
