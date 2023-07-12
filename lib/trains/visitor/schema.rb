@@ -9,9 +9,9 @@ module Trains
       PATTERN
 
       def_node_matcher :unversioned_schema?, <<~PATTERN
-       (block
-        (send (const (const nil? :ActiveRecord) :Schema) :define ...)
-       ...)
+        (block
+         (send (const (const nil? :ActiveRecord) :Schema) :define ...)
+        ...)
       PATTERN
 
       def initialize
@@ -64,7 +64,7 @@ module Trains
             next if child.method?(:index)
 
             DTO::Field.new(
-              name: child.first_argument.str_content,
+              name: child.first_argument.str_content.to_sym,
               type: child.method_name
             )
           end
