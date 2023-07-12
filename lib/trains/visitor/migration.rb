@@ -99,7 +99,7 @@ module Trains
         DTO::Migration.new(
           table_name,
           node.method_name,
-          [DTO::Field.new(column_name, type)],
+          [DTO::Field.new(column_name.to_sym, type)],
           @migration_version
         )
       end
@@ -176,18 +176,18 @@ module Trains
           # t.column col_name, col_type
           type = node.children[3].value
           value = node.children[2].value
-          fields << DTO::Field.new(value, type)
+          fields << DTO::Field.new(value.to_sym, type)
         when :references, :belongs_to
           # t.references
           type = :bigint
           value = "#{node.children[2].value}_id".to_sym
-          fields << DTO::Field.new(value, type)
+          fields << DTO::Field.new(value.to_sym, type)
         when :index
         else
           # t.string, t.integer etc.
           type = node.children[1]
           value = parse_args(node.children[2])
-          fields << DTO::Field.new(value, type)
+          fields << DTO::Field.new(value.to_sym, type)
         end
 
         fields
