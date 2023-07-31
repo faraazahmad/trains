@@ -66,9 +66,10 @@ module Trains
 
     def parse_schema
       result_hash = {}
-      schema_file = [File.join(@dir, 'db', 'schema.rb')]
-      models_results = parse_util(schema_file, Visitor::Schema)
+      schema_file = File.join(@dir, 'db', 'schema.rb')
+      return result_hash unless File.exist? schema_file
 
+      models_results = parse_util([schema_file], Visitor::Schema)
       models_results
         .select { |result| result.error.nil? }
         .map(&:data)
