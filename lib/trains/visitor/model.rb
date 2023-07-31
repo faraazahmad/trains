@@ -9,7 +9,11 @@ module Trains
         belongs_to
         has_one
         has_and_belongs_to_many
-      ]
+      ].freeze
+      MODEL_PARENT_CLASSES = %w[
+        ApplicationRecord
+        ActiveRecord::Base
+      ].freeze
       attr_reader :result
 
       # skipcq: RB-LI1087
@@ -19,7 +23,7 @@ module Trains
 
       def on_class(node)
         return unless node.parent_class
-        return unless node.parent_class.source == 'ApplicationRecord'
+        return unless MODEL_PARENT_CLASSES.include? node.parent_class.source
 
         @model_class = node.identifier.source
         node.each_descendant(:send) { |send_node| parse_model(send_node) }
