@@ -22,8 +22,14 @@ module Trains
                 field.name == mig.fields.first.name
               end
             models[mig.table_name].fields.delete(column)
+          when :rename_column
+            column =
+              models[mig.table_name].fields.find do |field|
+                field.name == mig.fields.first.name
+              end
+            models[mig.table_name].fields.delete(column)
           when :change_table
-          # TODO: handle renaming columns
+          # TODO: handle this case
           when :change_column
             # get column
             column =
