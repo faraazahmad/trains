@@ -32,7 +32,7 @@ module Trains
               end
             models[mig.table_name].fields.push(
               Trains::DTO::Field.new(
-                name: mig.fields.first.type,
+                name: mig.fields.first.type.to_sym,
                 type: column.type
               )
             )
