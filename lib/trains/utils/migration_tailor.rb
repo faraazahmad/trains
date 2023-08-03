@@ -78,6 +78,9 @@ module Trains
           else
             next
           end
+
+        rescue NoMethodError
+          next
         end
 
         models

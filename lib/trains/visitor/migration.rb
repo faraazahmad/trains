@@ -182,10 +182,11 @@ module Trains
           # t.references
           type = :bigint
           value = "#{node.children[2].value}_id".to_sym
-          fields << DTO::Field.new(value.to_sym, type)
+          fields << DTO::Field.new(value, type)
         when :rename
           type = :rename
           value = node.children[2..3].map { |field| field.value.to_sym }
+          pp value
           fields << DTO::Field.new(value, type)
         when :index
         else
