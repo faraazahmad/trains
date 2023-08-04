@@ -35,7 +35,7 @@ module Trains
         @result << DTO::Migration.new(
           @model_class,
           :add_column,
-          [DTO::Field.new(node.arguments.first.value, :bigint)],
+          [DTO::Field.new(node.arguments.first.value.to_sym, :bigint)],
           nil
         )
 

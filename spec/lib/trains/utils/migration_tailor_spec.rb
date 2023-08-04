@@ -7,7 +7,7 @@ describe Trains::Utils::MigrationTailor do
         'Post' => Trains::DTO::Model.new(
           name: 'Post',
           fields: [
-            Trains::DTO::Field.new(:name, :string),
+            Trains::DTO::Field.new(:name, :string)
           ],
           version: 6.3
         )
@@ -36,7 +36,8 @@ describe Trains::Utils::MigrationTailor do
     end
 
     it 'creates a model and adds a column to it' do
-      models = Trains::Utils::MigrationTailor.stitch(models_from_schema, create_add_migs)
+      models = Trains::Utils::MigrationTailor.stitch(models_from_schema,
+                                                     create_add_migs)
       expect(models).to eq(
         {
           'Post' =>
@@ -131,6 +132,77 @@ describe Trains::Utils::MigrationTailor do
           ],
           version: 5.2
         )
+        }
+      )
+    end
+  end
+
+  context 'Given migrations with rename and remove column' do
+    let(:migs_with_rename) do
+      [
+        Trains::DTO::Migration.new(
+          table_name: 'Group',
+          modifier: :create_table,
+          fields: [
+            Trains::DTO::Field.new(:id, :bigint),
+            Trains::DTO::Field.new(:title, :string),
+            Trains::DTO::Field.new(:age, :integer),
+            Trains::DTO::Field.new(:created_at, :datetime),
+            Trains::DTO::Field.new(:updated_at, :datetime)
+          ],
+          version: 7.0
+        ),
+        Trains::DTO::Migration.new(
+          table_name: 'Group',
+          modifier: :add_column,
+          fields: [
+            Trains::DTO::Field.new(:name, :string)
+          ],
+          version: 7.0
+        ),
+        Trains::DTO::Migration.new(
+          table_name: 'Group',
+          modifier: :change_table,
+          fields: [
+            Trains::DTO::Field.new(:title, :remove),
+            Trains::DTO::Field.new(%i[name whatup], :rename)
+          ],
+          version: 7.0
+        ),
+        Trains::DTO::Migration.new(
+          table_name: 'Group',
+          modifier: :rename_column,
+          fields: [
+            Trains::DTO::Field.new(:age, :alive_since)
+          ],
+          version: 7.0
+        ),
+        Trains::DTO::Migration.new(
+          table_name: 'Group',
+          modifier: :rename_column,
+          fields: [
+            Trains::DTO::Field.new(:whatup, :name)
+          ],
+          version: 7.0
+        )
+      ]
+    end
+
+    it 'generates models with renamed fields' do
+      models = Trains::Utils::MigrationTailor.stitch(migs_with_rename)
+      expect(models).to eq(
+        {
+          'Group' => Trains::DTO::Model.new(
+            name: 'Group',
+            version: 7.0,
+            fields: [
+              Trains::DTO::Field.new(:id, :bigint),
+              Trains::DTO::Field.new(:created_at, :datetime),
+              Trains::DTO::Field.new(:updated_at, :datetime),
+              Trains::DTO::Field.new(:alive_since, :integer),
+              Trains::DTO::Field.new(:name, :string)
+            ]
+          )
         }
       )
     end
