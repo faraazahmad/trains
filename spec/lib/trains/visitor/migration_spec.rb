@@ -31,6 +31,10 @@ describe Trains::Visitor::Migration do
     File.expand_path "#{__FILE__}/../../../../fixtures/safety_assured.rb"
   end
 
+  let(:change_table) do
+    File.expand_path "#{__FILE__}/../../../../fixtures/change_table.rb"
+  end
+
   context 'Given a valid DB migration file path' do
     it 'returns an object with its metadata' do
       parser = described_class.new
@@ -296,6 +300,67 @@ describe Trains::Visitor::Migration do
           ]
         )
       end
+    end
+  end
+
+  context 'Give a migration containing change_table migration' do
+    it 'create the appropriate migration objects' do
+      parser = described_class.new
+      file_ast =
+        RuboCop::AST::ProcessedSource.from_file(
+          change_table,
+          RUBY_VERSION.to_f
+        ).ast
+      file_ast.each_node { |node| parser.process(node) }
+
+      expect(parser.result).to eq(
+        [
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :create_table,
+            fields: [
+              Trains::DTO::Field.new(:id, :bigint),
+              Trains::DTO::Field.new(:title, :string),
+              Trains::DTO::Field.new(:created_at, :datetime),
+              Trains::DTO::Field.new(:updated_at, :datetime)
+            ],
+            version: 7.0
+          ),
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :add_column,
+            fields: [
+              Trains::DTO::Field.new(:name, :string)
+            ],
+            version: 7.0
+          ),
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :change_table,
+            fields: [
+              Trains::DTO::Field.new(:title, :remove),
+              Trains::DTO::Field.new(%i[name whatup], :rename)
+            ],
+            version: 7.0
+          ),
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :rename_column,
+            fields: [
+              Trains::DTO::Field.new(:whatup, :name)
+            ],
+            version: 7.0
+          ),
+          Trains::DTO::Migration.new(
+            table_name: 'Group',
+            modifier: :remove_column,
+            fields: [
+              Trains::DTO::Field.new(:name, nil)
+            ],
+            version: 7.0
+          )
+        ]
+      )
     end
   end
 end

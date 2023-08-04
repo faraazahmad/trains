@@ -22,6 +22,7 @@ module Trains
         add_column_with_default
         change_column
         add_reference
+        rename_column
         remove_column
       ].freeze
 
@@ -181,7 +182,11 @@ module Trains
           # t.references
           type = :bigint
           value = "#{node.children[2].value}_id".to_sym
-          fields << DTO::Field.new(value.to_sym, type)
+          fields << DTO::Field.new(value, type)
+        when :rename
+          type = :rename
+          value = node.children[2..3].map { |field| field.value.to_sym }
+          fields << DTO::Field.new(value, type)
         when :index
         else
           # t.string, t.integer etc.
