@@ -186,7 +186,6 @@ module Trains
         when :rename
           type = :rename
           value = node.children[2..3].map { |field| field.value.to_sym }
-          pp value
           fields << DTO::Field.new(value, type)
         when :index
         else
