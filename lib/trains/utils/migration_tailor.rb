@@ -33,14 +33,14 @@ module Trains
               end
             models[mig.table_name].fields.push(
               Trains::DTO::Field.new(
-                name: mig.fields.first.type,
+                name: mig.fields.first.type.to_sym,
                 type: column.type
               )
             )
             models[mig.table_name].fields.delete(column)
             models[mig.table_name].renamed_columns.push(
               Trains::DTO::Rename.new(
-                from: mig.fields.first.name, to: mig.fields.first.type
+                from: mig.fields.first.name.to_sym, to: mig.fields.first.type.to_sym
               )
             )
           when :change_table
@@ -62,7 +62,7 @@ module Trains
                 # Create new field from temp with new name
                 models[mig.table_name].fields.push(
                   Trains::DTO::Field.new(
-                    name: field.name[1],
+                    name: field.name[1].to_sym,
                     type: column.type
                   )
                 )
