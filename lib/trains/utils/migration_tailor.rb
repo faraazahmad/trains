@@ -19,6 +19,8 @@ module Trains
             end
           when :add_column, :add_column_with_default, :add_reference
             models[mig.table_name].fields.push(*mig.fields)
+          when :ignore_column
+            models[mig.table_name].ignored_columns.push(*mig.fields.map(&:name))
           when :remove_column
             column =
               models[mig.table_name].fields.find do |field|

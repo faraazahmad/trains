@@ -14,12 +14,16 @@ describe Trains::Visitor::Model do
 
       expect(parser.result).to eq(
         [
-        Trains::DTO::Migration.new(
-          table_name: 'AccountPin',
-          modifier: :ignore_column,
-          fields: [Trains::DTO::Field.new(:foo, nil), Trains::DTO::Field.new(:baz, nil)],
-          version: nil
-        )
+          Trains::DTO::Migration.new(
+            table_name: 'AccountPin',
+            modifier: :ignore_column,
+            fields: [
+              Trains::DTO::Field.new(:foo, nil),
+              Trains::DTO::Field.new(:baz, nil),
+              Trains::DTO::Field.new(:what, nil)
+            ],
+            version: nil
+          )
         ]
       )
     end

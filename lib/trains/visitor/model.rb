@@ -39,13 +39,13 @@ module Trains
 
           arguments = node.arguments.first.to_a
           arguments = arguments.select do |child|
-            child.is_a?(RuboCop::AST::SymbolNode)
+            child.is_a?(RuboCop::AST::SymbolNode) || child.is_a?(RuboCop::AST::StrNode)
           end.map(&:value)
 
           @result << DTO::Migration.new(
             @model_class,
             :ignore_column,
-            [*arguments.map { |arg| DTO::Field.new(arg, nil) }],
+            [*arguments.map { |arg| DTO::Field.new(arg.to_sym, nil) }],
             nil
           )
 
