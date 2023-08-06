@@ -89,7 +89,8 @@ describe Trains::Utils::MigrationTailor do
           fields: [
             Trains::DTO::Field.new(:more, :text)
           ],
-          version: 5.2
+          version: 5.2,
+          removed_columns: [:title]
         )
         }
       )
@@ -201,7 +202,13 @@ describe Trains::Utils::MigrationTailor do
               Trains::DTO::Field.new(:updated_at, :datetime),
               Trains::DTO::Field.new(:alive_since, :integer),
               Trains::DTO::Field.new(:name, :string)
-            ]
+            ],
+            renamed_columns: [
+              Trains::DTO::Rename.new(:name, :whatup),
+              Trains::DTO::Rename.new(:age, :alive_since),
+              Trains::DTO::Rename.new(:whatup, :name)
+            ],
+            removed_columns: %i[title]
           )
         }
       )

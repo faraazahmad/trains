@@ -9,6 +9,7 @@ module Trains
         belongs_to
         has_one
         has_and_belongs_to_many
+        ignored_columns=
       ].freeze
       MODEL_PARENT_CLASSES = %w[
         ApplicationRecord
@@ -31,6 +32,25 @@ module Trains
 
       def parse_model(node)
         return unless POSSIBLE_ASSOCIATIONS.include?(node.method_name)
+
+        if node.method_name == :ignored_columns=
+          return if node.arguments.nil?
+          return unless node.arguments.first.is_a? RuboCop::AST::ArrayNode
+
+          arguments = node.arguments.first.to_a
+          arguments = arguments.select do |child|
+            child.is_a?(RuboCop::AST::SymbolNode) || child.is_a?(RuboCop::AST::StrNode)
+          end.map(&:value)
+
+          @result << DTO::Migration.new(
+            @model_class,
+            :ignore_column,
+            [*arguments.map { |arg| DTO::Field.new(arg.to_sym, nil) }],
+            nil
+          )
+
+          return
+        end
 
         @result << DTO::Migration.new(
           @model_class,

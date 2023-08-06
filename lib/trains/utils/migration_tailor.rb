@@ -19,12 +19,15 @@ module Trains
             end
           when :add_column, :add_column_with_default, :add_reference
             models[mig.table_name].fields.push(*mig.fields)
+          when :ignore_column
+            models[mig.table_name].ignored_columns.push(*mig.fields.map(&:name))
           when :remove_column
             column =
               models[mig.table_name].fields.find do |field|
                 field.name == mig.fields.first.name
               end
             models[mig.table_name].fields.delete(column)
+            models[mig.table_name].removed_columns.push(mig.fields.first.name)
           when :rename_column
             column =
               models[mig.table_name].fields.find do |field|
@@ -37,6 +40,11 @@ module Trains
               )
             )
             models[mig.table_name].fields.delete(column)
+            models[mig.table_name].renamed_columns.push(
+              Trains::DTO::Rename.new(
+                from: mig.fields.first.name.to_sym, to: mig.fields.first.type.to_sym
+              )
+            )
           when :change_table
             mig.fields.each do |field|
               case field.type
@@ -46,6 +54,7 @@ module Trains
                     mod_field.name == field.name
                   end
                 models[mig.table_name].fields.delete(column)
+                models[mig.table_name].removed_columns.push(field.name)
               when :rename
                 # find the field and store temporarily
                 column =
@@ -55,12 +64,17 @@ module Trains
                 # Create new field from temp with new name
                 models[mig.table_name].fields.push(
                   Trains::DTO::Field.new(
-                    name: field.name[1],
+                    name: field.name[1].to_sym,
                     type: column.type
                   )
                 )
                 # Delete the field
                 models[mig.table_name].fields.delete(column)
+                models[mig.table_name].renamed_columns.push(
+                  Trains::DTO::Rename.new(
+                    from: field.name[0], to: field.name[1]
+                  )
+                )
               else
                 models[mig.table_name].fields.push(field)
               end
