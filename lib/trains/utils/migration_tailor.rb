@@ -25,6 +25,7 @@ module Trains
                 field.name == mig.fields.first.name
               end
             models[mig.table_name].fields.delete(column)
+            models[mig.table_name].removed_columns.push(mig.fields.first.name)
           when :rename_column
             column =
               models[mig.table_name].fields.find do |field|
@@ -32,11 +33,16 @@ module Trains
               end
             models[mig.table_name].fields.push(
               Trains::DTO::Field.new(
-                name: mig.fields.first.type.to_sym,
+                name: mig.fields.first.type,
                 type: column.type
               )
             )
             models[mig.table_name].fields.delete(column)
+            models[mig.table_name].renamed_columns.push(
+              Trains::DTO::Rename.new(
+                from: mig.fields.first.name, to: mig.fields.first.type
+              )
+            )
           when :change_table
             mig.fields.each do |field|
               case field.type
@@ -46,6 +52,7 @@ module Trains
                     mod_field.name == field.name
                   end
                 models[mig.table_name].fields.delete(column)
+                models[mig.table_name].removed_columns.push(field.name)
               when :rename
                 # find the field and store temporarily
                 column =
@@ -61,6 +68,11 @@ module Trains
                 )
                 # Delete the field
                 models[mig.table_name].fields.delete(column)
+                models[mig.table_name].renamed_columns.push(
+                  Trains::DTO::Rename.new(
+                    from: field.name[0], to: field.name[1]
+                  )
+                )
               else
                 models[mig.table_name].fields.push(field)
               end
